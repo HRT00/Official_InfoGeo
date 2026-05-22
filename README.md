@@ -9,8 +9,17 @@
 </h5>
 
 <p align="center">
-  By <a href="https://hrt00.github.io/hyzhang.github.io/" target="_blank">Hongyang Zhang<sup>*</sup></a>,&nbsp;
-  Maonan Wang<sup>*</sup>,&nbsp; Ziyao Wang,&nbsp; Hongrui Yin,&nbsp; Man On Pun<sup>†</sup>
+  By <a href="https://hrt00.github.io/hyzhang.github.io/" target="_blank">Hongyang Zhang<sup>1,*</sup></a>,&nbsp;
+  Maonan Wang<sup>2,3,*</sup>,&nbsp;
+  Ziyao Wang<sup>1</sup>,&nbsp;
+  Hongrui Yin<sup>1</sup>,&nbsp;
+  Man On Pun<sup>1,†</sup>
+</p>
+
+<p align="center">
+  <sup>1</sup>SSE, CUHK(SZ); 
+  <sup>2</sup>CUHK; 
+  <sup>3</sup>Shanghai AI Lab
 </p>
 
 <p align="center">
