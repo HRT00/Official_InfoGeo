@@ -39,3 +39,21 @@
 </div>
 
 Cross-view geo-localization (CVGL) is fundamental for precise localization and navigation in GPS-denied environments, aiming to match ground or UAV imagery with satellite views. Existing approaches often rely on global feature alignment, but they suffer from substantial domain shifts induced by varying regional textures and weather conditions. This issue becomes even more pronounced in UAV-based scenarios, where the broader perspective inevitably introduces dense, fine-grained objects, creating significant visual clutter. To address this, we draw inspiration from Object-Centric Learning (OCL) and propose InfoGeo, an information-theoretic framework designed to enhance robustness and generalization. InfoGeo reformulates the optimization as an information bottleneck process with two core objectives: (i) maximizing view-invariant information by aligning the object-centric structural relations across views, and (ii) minimizing view-specific noisy signals through cross-view knowledge constraints.
+
+## Cite
+If you find our paper and code useful in your research, please consider citing our work 📝:
+```bibtex
+@article{zhang2026infogeo,
+  title        = {InfoGeo: Information-Theoretic Object-Centric Learning for Cross-View Generalizable UAV Geo-Localization},
+  author       = {Zhang, Hongyang and Wang, Maonnan and Wang, Ziyao and Yin, Hongrui and Pun, Man On},
+  year         = {2026},
+  eprint       = {2605.07099},
+  archivePrefix = {arXiv},
+  primaryClass = {cs.CV},
+  doi          = {10.48550/arXiv.2605.07099},
+  url          = {https://arxiv.org/abs/2605.07099}
+}
+```
+
+## Contact
+If you have any questions about this project, please feel free to contact hongyangzhang1@link.cuhk.edu.cn.
