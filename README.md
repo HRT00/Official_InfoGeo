@@ -9,8 +9,12 @@
 </h5>
 
 <p align="center">
-  By <a href="[https://yux1angji.github.io/](https://hrt00.github.io/hyzhang.github.io/)" target='_blank'>Hongyang Zhang*</a>,&nbsp;
-  Maonan Wang*,&nbsp; Ziyao Wang,&nbsp; Hongrui Yin,&nbsp; Man On Pun
+  By <a href="https://hrt00.github.io/hyzhang.github.io/" target="_blank">Hongyang Zhang<sup>*</sup></a>,&nbsp;
+  Maonan Wang<sup>*</sup>,&nbsp; Ziyao Wang,&nbsp; Hongrui Yin,&nbsp; Man On Pun<sup>†</sup>
+</p>
+
+<p align="center">
+  <sup>*</sup>Equal contribution. <sup>†</sup>Corresponding author.
 </p>
 
 ## <a id="news"></a> 🔥 News
