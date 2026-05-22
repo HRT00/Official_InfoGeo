@@ -12,3 +12,6 @@
   By <a href="[https://yux1angji.github.io/](https://hrt00.github.io/hyzhang.github.io/)" target='_blank'>Hongyang Zhang*</a>,&nbsp;
   Maonan Wang*,&nbsp; Ziyao Wang,&nbsp; Hongrui Yin,&nbsp; Man On Pun
 </p>
+
+## <a id="news"></a> 🔥 News
+- [May 01, 2026]: InfoGeo is accepted by ICML'26 🎉
