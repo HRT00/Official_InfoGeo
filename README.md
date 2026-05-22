@@ -27,7 +27,7 @@
 </p>
 
 ## <a id="news"></a> 🔥 News
-- [May 08, 2026]: The preprint version has been released in [Link](https://arxiv.org/pdf/2605.07099v3) 🚩
+- [May 08, 2026]: The preprint version has been released in [Paper Link](https://arxiv.org/pdf/2605.07099v3) 🚩
 - [May 01, 2026]: InfoGeo is accepted by ICML'26 🎉
 
 ## 📝 Overview
