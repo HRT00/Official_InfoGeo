@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  <sup>1</sup>SSE, CUHK(SZ); 
+  <sup>1</sup>CUHK(SZ); 
   <sup>2</sup>CUHK; 
   <sup>3</sup>Shanghai AI Lab
 </p>
