@@ -12,7 +12,7 @@
   By <a href="https://hrt00.github.io/hyzhang.github.io/" target="_blank">Hongyang Zhang<sup>1,*</sup></a>,&nbsp;
   Maonan Wang<sup>2,3,*</sup>,&nbsp;
   Ziyao Wang<sup>1</sup>,&nbsp;
-  Hongrui Yin<sup>1</sup>,&nbsp;
+  Hongrui Yin<sup>1,2</sup>,&nbsp;
   Man On Pun<sup>1,†</sup>
 </p>
 
