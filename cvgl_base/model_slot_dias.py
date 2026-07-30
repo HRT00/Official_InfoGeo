@@ -432,97 +432,14 @@ class TimmModel_slot(nn.Module):
         else:
             feats1 = self.model(img1)
             # For distillation only
-            _, _, _, attent1, _ = self.slot_model(feats1)
+            # _, _, _, attent1, _ = self.slot_model(feats1)
             # attent1 = rearrange(attent1, 'b k h w -> b k (h w)')
 
             # # Intra-view MoE
             # attent1, _ = self.slot_moe(attent1, attent1)
 
-            mix1 = self.mix_fusion(feats1, attent1)
-            # feats1_flat = rearrange(mix1, 'b p h w -> b p (h w)')
-            des1 = self.slot_mixvpr(mix1)
-
-            return des1
-
-class TimmModel_base(nn.Module):
-
-    def __init__(self,
-                 model_name='dinov2_vitb14_MixVPR',
-                 pretrained_path=None,
-                 backbone_arch='',
-                 pretrained=True,
-                 img_size=224,
-                 vfm_dim = 768,
-                 emb_dim = 1024,
-                 num_slots = 16,
-                 iters = 3,
-                 layer1=8,
-                 alpha=0.8,
-                 ):
-
-        super(TimmModel_base, self).__init__()
-
-        self.img_size = img_size
-        self.alpha = alpha
-        self.vfm_dim = vfm_dim
-        self.emb_dim = emb_dim
-        self.num_slots = num_slots
-        self.iters = iters
-        
-        if "dino" in backbone_arch:
-            self.model = VPRModel(backbone_arch=backbone_arch, layer1=layer1)
-        elif "vitt" in backbone_arch:
-            # automatically change interpolate pos-encoding to img_size
-            self.model = timm.create_model(model_name, pretrained=pretrained, num_classes=0, img_size=img_size)
-        else:
-            self.model = timm.create_model(model_name, pretrained=pretrained, num_classes=0)
-
-        self.logit_scale = torch.nn.Parameter(torch.ones([]) * np.log(1 / 0.07))
-
-        self.slot_mixvpr = SlotMixVPR(
-            in_channels=self.vfm_dim,
-            in_h=32,
-            in_w=32,
-            mix_depth=2,
-            out_channels=self.emb_dim
-        )
-
-        if pretrained_path:
-            # 加载预训练模型的权重，但不包括输出层的权重
-            state_dict = torch.load(pretrained_path)
-            print("Start from:", pretrained_path)
-            self.load_state_dict(state_dict)
-
-    def get_config(self):
-        data_config = {'mean':[0.485, 0.456, 0.406], 'std':[0.229, 0.224, 0.225]}
-        return data_config
-
-    def set_grad_checkpointing(self, enable=True):
-        self.model.set_grad_checkpointing(enable)
-
-    def forward(self, img1, img2=None):
-        if self.training:
-            feats1 = self.model(img1) # [B, P, D]
-            feats2 = self.model(img2) # [B, P, D]
-
-            # Agg
-            feats1_flat = rearrange(feats1, 'b p h w -> b p (h w)')
-            des_g = self.slot_mixvpr(feats1_flat)
-            feats2_flat = rearrange(feats2, 'b p h w -> b p (h w)')
-            des_s = self.slot_mixvpr(feats2_flat)
-
-            return des_g, des_s
-        else:
-            feats1 = self.model(img1)
-            # # For distillation only
-            # _, _, _, attent1, _ = self.slot_model(feats1)
-            # attent1 = rearrange(attent1, 'b k h w -> b k (h w)')
-
-            # # Intra-view MoE
-            # # attent1, _ = self.slot_moe(attent1, attent1)
-
             # mix1 = self.mix_fusion(feats1, attent1)
-            feats1_flat = rearrange(feats1, 'b p h w -> b p (h w)')
-            des1 = self.slot_mixvpr(feats1_flat)
+            feats1_flat = rearrange(mix1, 'b p h w -> b p (h w)')
+            des1 = self.slot_mixvpr(mix1)
 
             return des1
