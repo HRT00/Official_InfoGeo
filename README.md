@@ -49,7 +49,7 @@ Cross-view geo-localization (CVGL) is fundamental for precise localization and n
 **Model Checkpoints:** Our model checkpoints are available at: https://drive.google.com/drive/folders/14cTbTPOniN_VlJrifTMdjWJ3foGgqIuq. You can directly use it for cross-domain testing with the evaluation codes: [Inference Code](https://github.com/HRT00/Official_InfoGeo/blob/main/eval_cvgl_slot.py)
 
 ## Acknowledgement
-We gratefully acknowledge the open-source community and the authors in both Object-Centric Learning and cross-view geo-localization. This repository is built using the [DIAS](https://github.com/Genera1Z/DIAS) and [CV-cities](https://github.com/GaoShuang98/CVCities).
+We gratefully acknowledge the open-source community and the authors in both Object-Centric Learning and Cross-View Geo-Localization. This repository is built using the [DIAS](https://github.com/Genera1Z/DIAS) and [CV-cities](https://github.com/GaoShuang98/CVCities).
 
 ## Cite
 If you find our paper and code useful in your research, please consider citing our work 📝:
