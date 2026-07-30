@@ -7,8 +7,6 @@ import torch.nn.functional as F
 from cvgl_base import helper
 from einops import rearrange
 
-# from .point_pn.point_pn import Point_PN
-
 from slot_attention.dias_slot_attention import MLP, NormalShared, LearntPositionalEmbedding
 from slot_attention.dias_slot_wrapper_cv import DIAS, SlotAttentionWithAllAttent, ARRandTransformerDecoder
 
