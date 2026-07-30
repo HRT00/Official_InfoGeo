@@ -55,11 +55,11 @@ class Configuration:
 config = Configuration() 
 
 if config.dataset == 'SUES-D2S':
-    config.query_folder_test = f'{data_folder}/query_drone'
-    config.gallery_folder_test = f'{data_folder}/gallery_satellite'
+    config.query_folder_test = f'{config.data_folder}/query_drone'
+    config.gallery_folder_test = f'{config.data_folder}/gallery_satellite'
 elif config.dataset == 'SUES-S2D': 
-    config.query_folder_test = f'{data_folder}/query_satellite' 
-    config.gallery_folder_test = f'{data_folder}/gallery_drone'
+    config.query_folder_test = f'{config.data_folder}/query_satellite' 
+    config.gallery_folder_test = f'{config.data_folder}/gallery_drone'
 else:
     raise ValueError(f"Unknow Scenarios: {config.dataset}")
 
