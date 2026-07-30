@@ -43,7 +43,7 @@
 
 Cross-view geo-localization (CVGL) is fundamental for precise localization and navigation in GPS-denied environments, aiming to match ground or UAV imagery with satellite views. Existing approaches often rely on global feature alignment, but they suffer from substantial domain shifts induced by varying regional textures and weather conditions. This issue becomes even more pronounced in UAV-based scenarios, where the broader perspective inevitably introduces dense, fine-grained objects, creating significant visual clutter. To address this, we draw inspiration from Object-Centric Learning (OCL) and propose InfoGeo, an information-theoretic framework designed to enhance robustness and generalization. InfoGeo reformulates the optimization as an information bottleneck process with two core objectives: (i) maximizing view-invariant information by aligning the object-centric structural relations across views, and (ii) minimizing view-specific noisy signals through cross-view knowledge constraints.
 
-## How to Use
+## 🚀 How to Use
 (1) Environment
 
 To set up the environment, run:
@@ -65,7 +65,7 @@ To evaluate the generalizable ability, run:
 python eval_cvgl_slot.py
 ```
 
-## Contents
+## 🧠 Model Checkpoint Contents
 **Pretrained DINOv2:** Our backbone is based on DINOv2-base, please refer to the [DINOv2 Link](https://github.com/facebookresearch/dinov2) to download the weights.
 
 **Model Checkpoints:** Our model checkpoints are available at: https://drive.google.com/drive/folders/14cTbTPOniN_VlJrifTMdjWJ3foGgqIuq. You can directly use it for cross-domain testing with the evaluation codes: [Inference Code](https://github.com/HRT00/Official_InfoGeo/blob/main/eval_cvgl_slot.py)
