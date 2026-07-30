@@ -68,7 +68,7 @@ python eval_cvgl_slot.py
 ## 🧠 Model Checkpoint Contents
 **Pretrained DINOv2:** Our backbone is based on DINOv2-base, please refer to the [DINOv2 Link](https://github.com/facebookresearch/dinov2) to download the weights.
 
-**Model Checkpoints:** Our model checkpoints are available at: https://drive.google.com/drive/folders/14cTbTPOniN_VlJrifTMdjWJ3foGgqIuq. You can directly use it for cross-domain testing with the evaluation codes: [Inference Code](https://github.com/HRT00/Official_InfoGeo/blob/main/eval_cvgl_slot.py)
+**Model Checkpoints:** Our model checkpoints are available at: https://drive.google.com/drive/folders/14cTbTPOniN_VlJrifTMdjWJ3foGgqIuq. You can directly use it for testing with the codes: [Inference Code](https://github.com/HRT00/Official_InfoGeo/blob/main/eval_cvgl_slot.py)
 
 ## Acknowledgement
 We gratefully acknowledge the open-source community and the authors in both Object-Centric Learning and Cross-View Geo-Localization. This repository is built using the [DIAS](https://github.com/Genera1Z/DIAS) and [CV-cities](https://github.com/GaoShuang98/CVCities).
