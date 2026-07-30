@@ -27,7 +27,7 @@
 </p>
 
 ## <a id="news"></a> 🔥 News
-- 🚀[June 24, 2026]: The code of InfoGeo model has been open-sourced.
+- 🚀[July 30, 2026]: The codes of InfoGeo model and evaluation have been open-sourced.
 - 🚩[June 13, 2026]: The weights of InfoGeo have been released.
 - 😃[May 26, 2026]: InfoGeo is selected to be featured on [WeChat Blogs](https://mp.weixin.qq.com/s/S_7yeJJbXJIqsDUSS8Mf-w) (公众号：**Visual-Language Navigation / 视觉语言导航**).
 - 🚩[May 08, 2026]: The preprint version has been released in [Paper Link](https://arxiv.org/pdf/2605.07099). 
