@@ -1,0 +1,28 @@
+# PyTorch CUDA 11.8 wheels. A sufficiently recent NVIDIA driver is required.
+--extra-index-url https://download.pytorch.org/whl/cu118
+
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+
+# Model and training utilities
+timm==0.9.12
+transformers==4.36.2
+einops==0.7.0
+torchsummary==1.5.1
+
+# Image/data processing
+# Albumentations 1.x is required because the project uses its legacy
+# ImageCompression and CoarseDropout keyword arguments.
+albumentations==1.3.1
+opencv-python-headless==4.8.1.78
+numpy==1.24.4
+scipy==1.10.1
+
+# Runtime helpers
+tqdm==4.66.1
+psutil==5.9.8
+
+# Dependencies used by the repository-local DINOv2 implementation
+omegaconf==2.3.0
+fvcore==0.1.5.post20221221
+iopath==0.1.10
