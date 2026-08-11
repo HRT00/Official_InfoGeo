@@ -49,6 +49,9 @@ Cross-view geo-localization (CVGL) is fundamental for precise localization and n
 To set up the environment, run:
 ```
 # python 3.10
+conda create -n cvgl python=3.10 -y
+conda activate cvgl
+python -m pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
