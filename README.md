@@ -9,6 +9,12 @@
 </h5>
 
 <p align="center">
+  <a href="https://github.com/HRT00/Official_InfoGeo"><img src="https://img.shields.io/badge/Project-GitHub-181717?logo=github&logoColor=white" alt="Project"></a>
+  <a href="https://opensource.org/license/mit"><img src="https://img.shields.io/badge/License-MIT-2ea44f" alt="MIT License"></a>
+  <a href="https://arxiv.org/abs/2605.07099"><img src="https://img.shields.io/badge/arXiv-2605.07099-b31b1b" alt="arXiv"></a>
+</p>
+
+<p align="center">
   By <a href="https://hrt00.github.io/hyzhang.github.io/" target="_blank">Hongyang Zhang<sup>1,*</sup></a>,&nbsp;
   Maonan Wang<sup>2,3,*</sup>,&nbsp;
   Ziyao Wang<sup>1</sup>,&nbsp;
