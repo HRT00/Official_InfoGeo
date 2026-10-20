@@ -47,32 +47,26 @@ class DinoV2_self(nn.Module):
 
         print(f'loading DINOv2 model（{self.model_name}）...')
         if 'vitg14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2_wt/dinov2_vitg14_pretrain.pth'))
+            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vitg14_pretrain.pth'))
             if self.layer1 > 39:
                 print('请确认layer的正确性！vitg14最高block层为39层')
                 exit()
         elif 'vitl14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitl14_pretrain.pth'))
+            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vitl14_pretrain.pth'))
             if self.layer1 > 23:
                 print('请确认layer的正确性！vitl14最高block层为23层')
                 exit()
-        # elif 'vitl14_reg' in self.model_name:
-        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-        #     self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2/dinov2_vitl14_reg4_pretrain.pth'))
-        #     if self.layer1 > 23:
-        #         print('请确认layer的正确性！vitl14最高block层为23层')
-        #         exit()
         elif 'vitb14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitb14_pretrain.pth'), strict=False)
+            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vitb14_pretrain.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'vits14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'/home/liuyh/GEO/code/CVCities-main/dinov2/dinov2_vits14_pretrain.pth'))
+            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vits14_pretrain.pth'))
             if self.layer1 > 11:
                 print('请确认layer的正确性！vits14最高block层为12层')
                 exit()
@@ -83,31 +77,10 @@ class DinoV2_self(nn.Module):
         self.dino_model = self.dino_model.to(self.device)
         if pretrained:
             self.dino_model.patch_embed.requires_grad_(False)
-            # self.dino_model.cls_token.requires_grad_(False)
-            # self.dino_model.pos_embed.requires_grad_(False)
-            # self.dino_model.mask_token.requires_grad_(False)
 
             for i in range(0, self.layer1 + 1):
                 self.dino_model.blocks[i].requires_grad_(False)
-            # try:
-            #     for i in range(self.layer1 + 1, len(self.dino_model.blocks)):
-            #         self.dino_model.blocks[i] = nn.Sequential()
-            # except Exception as e:
-            #     print(f'报错：{e}')
 
-        #     self.dino_model.blocks[self.layer1].attn = nn.Sequential()
-        #     self.dino_model.blocks[self.layer1].ls1 = nn.Sequential()
-        #     self.dino_model.blocks[self.layer1].drop_path = nn.Sequential()
-
-        #     self.dino_model.blocks[self.layer1].mlp = nn.Sequential()
-        #     self.dino_model.blocks[self.layer1].ls2 = nn.Sequential()
-
-        # self.dino_model.blocks[self.layer1].drop_path1 = None
-        # self.dino_model.blocks[self.layer1].norm2 = None
-        # self.dino_model.blocks[self.layer1].mlp = None
-        # self.dino_model.blocks[self.layer1].ls2 = None
-        # self.dino_model.blocks[self.layer1].drop_path2 = None
-        #
         self.dino_model.norm = nn.Sequential()
         self.dino_model.head = nn.Sequential()
 
