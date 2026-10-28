@@ -154,7 +154,6 @@ If you use InfoGeo in your research, please consider citing our work:
   booktitle = 	 {Proceedings of the 43rd International Conference on Machine Learning},
   pages = 	 {159097--159121},
   year = 	 {2026},
-  editor = 	 {Zhang, Tong and Dudik, Miroslav and Jaggi, Martin and Agarwal, Alekh and Li, Sharon and Schuurmans, Dale and Zhu, Jerry and Berkenkamp, Felix and Dong, Hanze and Bietti, Alberto},
   volume = 	 {306},
   series = 	 {Proceedings of Machine Learning Research},
   month = 	 {06--11 Jul},
