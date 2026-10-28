@@ -148,16 +148,19 @@ We thank the open-source community and the researchers working on Object-Centric
 If you use InfoGeo in your research, please consider citing our work:
 
 ```bibtex
-@article{zhang2026infogeo,
-  title        = {InfoGeo: Information-Theoretic Object-Centric Learning for Cross-View Generalizable UAV Geo-Localization},
-  author       = {Zhang, Hongyang and Wang, Maonnan and Wang, Ziyao and Yin, Hongrui and Pun, Man On},
-  year         = {2026},
-  eprint       = {2605.07099},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.CV},
-  doi          = {10.48550/arXiv.2605.07099},
-  url          = {https://arxiv.org/abs/2605.07099}
+@InProceedings{pmlr-v306-zhang26gg,
+  title = 	 {{I}nfo{G}eo: Information-Theoretic Object-Centric Learning for Cross-View Generalizable {UAV} Geo-Localization},
+  author =       {Zhang, Hongyang and Wang, Maonan and Wang, Ziyao and Yin, Hongrui and Pun, Man On},
+  booktitle = 	 {Proceedings of the 43rd International Conference on Machine Learning},
+  pages = 	 {159097--159121},
+  year = 	 {2026},
+  editor = 	 {Zhang, Tong and Dudik, Miroslav and Jaggi, Martin and Agarwal, Alekh and Li, Sharon and Schuurmans, Dale and Zhu, Jerry and Berkenkamp, Felix and Dong, Hanze and Bietti, Alberto},
+  volume = 	 {306},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {06--11 Jul},
+  publisher =    {PMLR}
 }
+
 ```
 
 ## Contact
