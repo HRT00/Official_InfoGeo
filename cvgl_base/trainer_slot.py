@@ -77,9 +77,9 @@ def train(train_config, model, dataloader, loss_function, optimizer, scheduler=N
                 recon_loss = F.mse_loss(recon[0], feats[0]) + F.mse_loss(recon[1], feats[1])
                 # slot_loss = slot_infoNCE(attent[0], attent[1]) + slot_infoNCE(attent[0], attent[0]) + slot_infoNCE(attent[1], attent[1]) + train_config.reg*reg_InfoNCE(attent[0], attent[1])
                 slot_loss = slot_infoNCE(attent[0], attent[1]) + train_config.reg*reg_InfoNCE(attent[0], attent[1])
-                # distill_loss = relational_distillation_3d_loss(des[0], des[2]) + relational_distillation_3d_loss(des[1], des[3])
-                # loss = train_config.rec*recon_loss + train_config.dis*distill_loss + 4.0*(loss_sim_self1 + loss_sim_self2 + loss_sim_g2s + slot_loss)
-                loss = train_config.rec*recon_loss + 4.0*(loss_sim_self1 + loss_sim_self2 + loss_sim_g2s + slot_loss)
+                distill_loss = relational_distillation_3d_loss(des[0], des[2]) + relational_distillation_3d_loss(des[1], des[3])
+                loss = train_config.rec*recon_loss + train_config.dis*distill_loss + 4.0*(loss_sim_self1 + loss_sim_self2 + loss_sim_g2s + slot_loss)
+
                 losses.update(loss.item())
                   
             scaler.scale(loss).backward()
