@@ -428,16 +428,9 @@ class TimmModel_slot(nn.Module):
 
             return (feats1, feats2), (des_g, des_s, des1, des2), (attent1, attent2), (recon1, recon2)
         else:
+            # w/ RD version
             feats1 = self.model(img1)
-            # For distillation only
-            # _, _, _, attent1, _ = self.slot_model(feats1)
-            # attent1 = rearrange(attent1, 'b k h w -> b k (h w)')
-
-            # # Intra-view MoE
-            # attent1, _ = self.slot_moe(attent1, attent1)
-
-            # mix1 = self.mix_fusion(feats1, attent1)
-            feats1_flat = rearrange(mix1, 'b p h w -> b p (h w)')
-            des1 = self.slot_mixvpr(mix1)
+            feats1_flat = rearrange(feats1, 'b p h w -> b p (h w)')
+            des1 = self.slot_mixvpr(feats1_flat)
 
             return des1
