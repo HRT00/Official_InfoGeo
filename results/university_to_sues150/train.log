@@ -1,0 +1,485 @@
+loading DINOv2 model（dinov2_vitb14）...
+DINOv2 view token: True
+Evaluation images: 4000 queries, 200 gallery
+Peak learning rates: backbone 0.0004445, heads 0.000635
+Training pairs: 701, scheduled steps: 7040
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1043 - Last Element ID: 1508
+Epoch 1: train loss 38.550
+Optimizer updates: 168/175, AMP scale 1024 -> 8
+Relative parameter change over epoch: CLS 0.0822682, MixVPR row projection 0.198546
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1020 - Last Element ID: 1572
+Epoch 2: train loss 36.395
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0443455, MixVPR row projection 0.0869294
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1070 - Last Element ID: 0993
+Epoch 3: train loss 36.072
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0526754, MixVPR row projection 0.0543222
+Extract Features:
+Compute Scores:
+Recall@1: 82.4000 - Recall@5: 95.2250 - Recall@10: 97.6000 - Recall@top1: 93.0750 - AP: 85.3009
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1568 - Last Element ID: 1551
+Epoch 4: train loss 35.970
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0455598, MixVPR row projection 0.0430266
+Extract Features:
+Compute Scores:
+Recall@1: 87.5750 - Recall@5: 95.8250 - Recall@10: 96.9750 - Recall@top1: 95.0500 - AP: 89.5010
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1634 - Last Element ID: 1120
+Epoch 5: train loss 35.725
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0371084, MixVPR row projection 0.0325899
+Extract Features:
+Compute Scores:
+Recall@1: 89.1000 - Recall@5: 97.2750 - Recall@10: 98.1500 - Recall@top1: 96.4750 - AP: 90.9980
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1620 - Last Element ID: 1135
+Epoch 6: train loss 35.603
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0353952, MixVPR row projection 0.0285158
+Extract Features:
+Compute Scores:
+Recall@1: 89.8500 - Recall@5: 97.0250 - Recall@10: 97.7500 - Recall@top1: 96.3500 - AP: 91.5666
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1151 - Last Element ID: 1122
+Epoch 7: train loss 35.552
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.028196, MixVPR row projection 0.0218265
+Extract Features:
+Compute Scores:
+Recall@1: 92.3750 - Recall@5: 97.8750 - Recall@10: 98.1500 - Recall@top1: 97.1000 - AP: 93.6452
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1258 - Last Element ID: 0855
+Epoch 8: train loss 35.459
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0325126, MixVPR row projection 0.0210528
+Extract Features:
+Compute Scores:
+Recall@1: 91.5000 - Recall@5: 97.7250 - Recall@10: 98.7750 - Recall@top1: 96.7000 - AP: 92.9331
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1168 - Last Element ID: 1519
+Epoch 9: train loss 35.465
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0277645, MixVPR row projection 0.0239115
+Extract Features:
+Compute Scores:
+Recall@1: 89.1750 - Recall@5: 96.8500 - Recall@10: 98.5000 - Recall@top1: 95.6000 - AP: 90.9675
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1412 - Last Element ID: 1192
+Epoch 10: train loss 35.378
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0249461, MixVPR row projection 0.0162282
+Extract Features:
+Compute Scores:
+Recall@1: 90.4500 - Recall@5: 96.9000 - Recall@10: 98.0750 - Recall@top1: 96.4500 - AP: 92.0422
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1276 - Last Element ID: 0844
+Epoch 11: train loss 35.319
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0252205, MixVPR row projection 0.0160854
+Extract Features:
+Compute Scores:
+Recall@1: 91.4500 - Recall@5: 97.5500 - Recall@10: 98.5250 - Recall@top1: 96.7250 - AP: 92.8866
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1148 - Last Element ID: 1234
+Epoch 12: train loss 35.325
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0246501, MixVPR row projection 0.021968
+Extract Features:
+Compute Scores:
+Recall@1: 89.8750 - Recall@5: 97.0750 - Recall@10: 98.7250 - Recall@top1: 96.1000 - AP: 91.6145
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 0974 - Last Element ID: 1507
+Epoch 13: train loss 35.298
+Optimizer updates: 175/175, AMP scale 8 -> 16
+Relative parameter change over epoch: CLS 0.0205133, MixVPR row projection 0.0155278
+Extract Features:
+Compute Scores:
+Recall@1: 90.7000 - Recall@5: 97.7000 - Recall@10: 98.8250 - Recall@top1: 96.4000 - AP: 92.3177
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 0943 - Last Element ID: 0983
+Epoch 14: train loss 35.286
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.022099, MixVPR row projection 0.0136768
+Extract Features:
+Compute Scores:
+Recall@1: 90.6000 - Recall@5: 97.1750 - Recall@10: 97.8500 - Recall@top1: 96.4500 - AP: 92.1197
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 0963 - Last Element ID: 1230
+Epoch 15: train loss 35.207
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.0200955, MixVPR row projection 0.0116753
+Extract Features:
+Compute Scores:
+Recall@1: 91.3500 - Recall@5: 96.9750 - Recall@10: 97.8750 - Recall@top1: 96.3000 - AP: 92.7113
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1234 - Last Element ID: 1482
+Epoch 16: train loss 35.225
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.0193937, MixVPR row projection 0.0103192
+Extract Features:
+Compute Scores:
+Recall@1: 89.7000 - Recall@5: 97.3750 - Recall@10: 98.3750 - Recall@top1: 96.3750 - AP: 91.4728
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1110 - Last Element ID: 1471
+Epoch 17: train loss 35.225
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.0170137, MixVPR row projection 0.00931268
+Extract Features:
+Compute Scores:
+Recall@1: 90.7500 - Recall@5: 97.7000 - Recall@10: 98.4750 - Recall@top1: 96.8750 - AP: 92.3622
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1541 - Last Element ID: 1058
+Epoch 18: train loss 35.136
+Optimizer updates: 174/175, AMP scale 16 -> 8
+Relative parameter change over epoch: CLS 0.0148968, MixVPR row projection 0.00805454
+Extract Features:
+Compute Scores:
+Recall@1: 92.0250 - Recall@5: 97.9750 - Recall@10: 98.9500 - Recall@top1: 96.9750 - AP: 93.3838
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1583 - Last Element ID: 0956
+Epoch 19: train loss 35.200
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0129819, MixVPR row projection 0.00731116
+Extract Features:
+Compute Scores:
+Recall@1: 90.6250 - Recall@5: 97.7500 - Recall@10: 98.7500 - Recall@top1: 97.0000 - AP: 92.2956
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1157 - Last Element ID: 1274
+Epoch 20: train loss 35.087
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0122109, MixVPR row projection 0.00804951
+Extract Features:
+Compute Scores:
+Recall@1: 90.2000 - Recall@5: 97.0500 - Recall@10: 98.4500 - Recall@top1: 96.5000 - AP: 91.8732
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1170 - Last Element ID: 1293
+Epoch 21: train loss 35.127
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0124208, MixVPR row projection 0.00659653
+Extract Features:
+Compute Scores:
+Recall@1: 90.0750 - Recall@5: 97.2000 - Recall@10: 98.5000 - Recall@top1: 96.7000 - AP: 91.8344
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1410 - Last Element ID: 1108
+Epoch 22: train loss 35.075
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0108866, MixVPR row projection 0.00563506
+Extract Features:
+Compute Scores:
+Recall@1: 92.1750 - Recall@5: 97.4000 - Recall@10: 98.3250 - Recall@top1: 96.6000 - AP: 93.4055
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1116 - Last Element ID: 1095
+Epoch 23: train loss 35.103
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0124436, MixVPR row projection 0.00436374
+Extract Features:
+Compute Scores:
+Recall@1: 91.0750 - Recall@5: 97.2250 - Recall@10: 98.6250 - Recall@top1: 96.5000 - AP: 92.5724
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1036 - Last Element ID: 1395
+Epoch 24: train loss 35.073
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0131345, MixVPR row projection 0.00498574
+Extract Features:
+Compute Scores:
+Recall@1: 92.5000 - Recall@5: 97.3750 - Recall@10: 98.5250 - Recall@top1: 96.6750 - AP: 93.6716
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1587 - Last Element ID: 1046
+Epoch 25: train loss 35.062
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.00971154, MixVPR row projection 0.00422899
+Extract Features:
+Compute Scores:
+Recall@1: 91.8250 - Recall@5: 97.7750 - Recall@10: 99.3250 - Recall@top1: 96.7750 - AP: 93.2021
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1377 - Last Element ID: 1222
+Epoch 26: train loss 35.035
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.00631529, MixVPR row projection 0.00313106
+Extract Features:
+Compute Scores:
+Recall@1: 92.1750 - Recall@5: 97.4250 - Recall@10: 99.2000 - Recall@top1: 96.7500 - AP: 93.4664
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1521 - Last Element ID: 1552
+Epoch 27: train loss 34.996
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.00589693, MixVPR row projection 0.00326375
+Extract Features:
+Compute Scores:
+Recall@1: 92.0750 - Recall@5: 97.5250 - Recall@10: 99.0500 - Recall@top1: 96.7250 - AP: 93.3873
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 0913 - Last Element ID: 1152
+Epoch 28: train loss 35.036
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.0063888, MixVPR row projection 0.00296124
+Extract Features:
+Compute Scores:
+Recall@1: 92.7250 - Recall@5: 97.9500 - Recall@10: 99.1750 - Recall@top1: 96.9500 - AP: 93.9302
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1156 - Last Element ID: 0949
+Epoch 29: train loss 35.032
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.00435732, MixVPR row projection 0.00262704
+Extract Features:
+Compute Scores:
+Recall@1: 92.0250 - Recall@5: 97.8250 - Recall@10: 99.0750 - Recall@top1: 96.9250 - AP: 93.3555
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1101 - Last Element ID: 1020
+Epoch 30: train loss 35.007
+Optimizer updates: 175/175, AMP scale 8 -> 16
+Relative parameter change over epoch: CLS 0.00365305, MixVPR row projection 0.00178343
+Extract Features:
+Compute Scores:
+Recall@1: 92.0750 - Recall@5: 97.5750 - Recall@10: 99.2000 - Recall@top1: 96.5750 - AP: 93.3823
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1292 - Last Element ID: 1144
+Epoch 31: train loss 34.999
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.00304313, MixVPR row projection 0.00190364
+Extract Features:
+Compute Scores:
+Recall@1: 91.4250 - Recall@5: 97.6250 - Recall@10: 99.2000 - Recall@top1: 96.7500 - AP: 92.8917
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1252 - Last Element ID: 0976
+Epoch 32: train loss 34.995
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.00325473, MixVPR row projection 0.00100172
+Extract Features:
+Compute Scores:
+Recall@1: 91.5250 - Recall@5: 97.8500 - Recall@10: 99.3000 - Recall@top1: 96.8500 - AP: 93.0022
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1086 - Last Element ID: 1586
+Epoch 33: train loss 35.001
+Optimizer updates: 175/175, AMP scale 16 -> 16
+Relative parameter change over epoch: CLS 0.00174238, MixVPR row projection 0.000940808
+Extract Features:
+Compute Scores:
+Recall@1: 91.7500 - Recall@5: 97.7750 - Recall@10: 99.1750 - Recall@top1: 96.9750 - AP: 93.1764
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 0867 - Last Element ID: 0925
+Epoch 34: train loss 34.980
+Optimizer updates: 174/175, AMP scale 16 -> 8
+Relative parameter change over epoch: CLS 0.00136502, MixVPR row projection 0.000758379
+Extract Features:
+Compute Scores:
+Recall@1: 92.0750 - Recall@5: 97.9500 - Recall@10: 99.1750 - Recall@top1: 97.0500 - AP: 93.4367
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1050 - Last Element ID: 1086
+Epoch 35: train loss 35.028
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.00188434, MixVPR row projection 0.000718915
+Extract Features:
+Compute Scores:
+Recall@1: 91.9750 - Recall@5: 97.9250 - Recall@10: 99.1250 - Recall@top1: 97.0250 - AP: 93.3575
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1576 - Last Element ID: 1434
+Epoch 36: train loss 34.987
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.000798779, MixVPR row projection 0.000494219
+Extract Features:
+Compute Scores:
+Recall@1: 92.2250 - Recall@5: 97.9000 - Recall@10: 99.0250 - Recall@top1: 97.0750 - AP: 93.5432
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1129 - Last Element ID: 1605
+Epoch 37: train loss 34.986
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.000555248, MixVPR row projection 0.000259297
+Extract Features:
+Compute Scores:
+Recall@1: 91.9500 - Recall@5: 97.9500 - Recall@10: 99.1250 - Recall@top1: 97.0500 - AP: 93.3429
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1057 - Last Element ID: 1304
+Epoch 38: train loss 34.976
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.000344614, MixVPR row projection 0.000138722
+Extract Features:
+Compute Scores:
+Recall@1: 91.9000 - Recall@5: 98.0000 - Recall@10: 99.1500 - Recall@top1: 97.1000 - AP: 93.3047
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1281 - Last Element ID: 1576
+Epoch 39: train loss 34.995
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 0.000176088, MixVPR row projection 9.7169e-05
+Extract Features:
+Compute Scores:
+Recall@1: 91.9500 - Recall@5: 97.9250 - Recall@10: 99.1500 - Recall@top1: 97.0750 - AP: 93.3404
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1052 - Last Element ID: 1648
+Epoch 40: train loss 35.049
+Optimizer updates: 175/175, AMP scale 8 -> 8
+Relative parameter change over epoch: CLS 3.42691e-05, MixVPR row projection 2.82905e-05
+Extract Features:
+Compute Scores:
+Recall@1: 91.9250 - Recall@5: 97.9250 - Recall@10: 99.1500 - Recall@top1: 97.1000 - AP: 93.3221
+
+Shuffle Dataset:
+Original Length: 701 - Length after Shuffle: 700
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 1
+First Element ID: 1468 - Last Element ID: 0891

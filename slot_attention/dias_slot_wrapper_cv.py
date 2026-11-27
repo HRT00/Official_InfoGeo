@@ -182,9 +182,7 @@ class ARRandTransformerDecoder(nn.Module):
         # 'ari': 0.2038770616054535, 'ari_fg': 0.3444632291793823, 'mbo': 0.29167482256889343, 'miou': 0.27789679169654846
 
         if self.training:
-            idxs = pt.vmap(  # (b,m)
-                lambda _: pt.randperm(m, device=device), randomness="different"
-            )(tokens)
+            idxs = pt.stack([pt.randperm(m, device=device) for _ in range(b)])
             idxs_expanded = idxs[:, :, None].expand(-1, -1, c)
 
             idxs0 = pt.arange(0, m, device=device)[None, :]  # (1,m)
@@ -195,10 +193,10 @@ class ARRandTransformerDecoder(nn.Module):
             # TODO XXX realize a Poisson: when in [0, 1], it is Poisson; when out, then uniformly re-distribute in [0, 1]
             cond = pt.rand(b, 1, device=device) < p
             keep = pt.where(cond, keep1, keep2)
-            # XXX 论文论述 XXX
+            # Autoregressive decoder variants.
             # keep@0: SlotMixerDecoder
-            # 只预测下一个：ARTransformerDecoder
-            # 其中9种只预测下一个，AR9TransformerDecoder
+            # ARTransformerDecoder predicts the next token.
+            # AR9TransformerDecoder uses nine variants for next-token prediction.
             mask = idxs0 < keep  # (b,m)
 
             # shuffle tokens

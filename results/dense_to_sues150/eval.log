@@ -1,0 +1,7 @@
+Checkpoint: weights_e1_0.8985.pth
+Epoch: 1
+PyTorch: 2.6.0+cu124
+SUES-200 Testing/150, drone to satellite, evaluation batch size 128
+DINOv2 view token: True
+Evaluation images: 4000 queries, 200 gallery
+Recall@1: 89.8500 - Recall@5: 97.4750 - Recall@10: 98.8750 - Recall@top1: 96.4000 - AP: 91.6127

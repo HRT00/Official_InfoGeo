@@ -239,10 +239,10 @@ class DenseUAVDatasetUCVGLTrain(Dataset):
                     self.pairs.append((idx, label, query_img, bev_img, pointcloud_img3, "{}/{}".format(gallery_path, g)))
 
         # For UCVGL
-        galleries = [p[-1] for p in self.pairs]   # 提取最后一列
-        random.shuffle(galleries)                 # 打乱 gallery
+        galleries = [p[-1] for p in self.pairs]   # Extract the last column.
+        random.shuffle(galleries)                 # Shuffle the gallery.
 
-        # 重新组合
+        # Recombine the pairs.
         self.pairs = [(p[0], p[1], p[2], p[3], p[4], g) for p, g in zip(self.pairs, galleries)]
 
         self.transforms_query = transforms_query

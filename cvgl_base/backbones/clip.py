@@ -51,7 +51,7 @@ class Adapter(nn.Module):
         self.up = nn.Linear(bottleneck, dim)
 
     def forward(self, x):
-        return x + self.up(self.act(self.down(x)))  # 残差连接
+        return x + self.up(self.act(self.down(x)))  # Residual connection
     
 
 class CLIP_Model(nn.Module):

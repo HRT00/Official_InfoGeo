@@ -1,3 +1,4 @@
+import math
 import time
 import torch
 from tqdm import tqdm
@@ -5,7 +6,7 @@ from .utils import AverageMeter
 from torch.cuda.amp import autocast
 import torch.nn.functional as F
 import torch.nn as nn
-from .loss.loss import slot_infoNCE, relational_distillation_3d_loss, reg_InfoNCE
+from .loss.loss import slot_infoNCE, relational_distillation, reg_InfoNCE, get_w_regularization
 
 # mse_loss = nn.MSELoss()
 
@@ -26,6 +27,8 @@ def train(train_config, model, dataloader, loss_function, optimizer, scheduler=N
     model.train()
     
     losses = AverageMeter()
+    reported_invalid_loss = False
+    graph_options = {"stable_eigenvectors": True} if getattr(train_config, "stable_graph_gradients", False) else {}
     
     # wait before starting progress bar
     time.sleep(0.1)
@@ -53,7 +56,7 @@ def train(train_config, model, dataloader, loss_function, optimizer, scheduler=N
             
                 # Forward pass
                 # feats1, feats2, features1, features2, slots_g, slots_s, r_g, r_s = model(query, reference)
-                feats, des, attent, recon = model(query, reference)
+                feats, des, attent, recon, w = model(query, reference)
 
                 # if torch.cuda.device_count() > 1 and len(train_config.gpu_ids) > 1: 
                 #     loss_sim_self1 = loss_function['InfoNCE'](features1, features1, model.module.logit_scale.exp())
@@ -76,11 +79,21 @@ def train(train_config, model, dataloader, loss_function, optimizer, scheduler=N
 
                 recon_loss = F.mse_loss(recon[0], feats[0]) + F.mse_loss(recon[1], feats[1])
                 # slot_loss = slot_infoNCE(attent[0], attent[1]) + slot_infoNCE(attent[0], attent[0]) + slot_infoNCE(attent[1], attent[1]) + train_config.reg*reg_InfoNCE(attent[0], attent[1])
-                slot_loss = slot_infoNCE(attent[0], attent[1]) + train_config.reg*reg_InfoNCE(attent[0], attent[1])
-                distill_loss = relational_distillation_3d_loss(des[0], des[2]) + relational_distillation_3d_loss(des[1], des[3])
+                cacs_loss = get_w_regularization(w1=w[0], w2=w[1])
+                graph_loss = reg_InfoNCE(attent[0], attent[1], **graph_options)
+                slot_loss = slot_infoNCE(attent[0], attent[1]) + train_config.reg*graph_loss + getattr(train_config, "cacs_weight", 1.0) * cacs_loss
+                distill_loss = relational_distillation(des[0], des[2]) + relational_distillation(des[1], des[3])
                 loss = train_config.rec*recon_loss + train_config.dis*distill_loss + 4.0*(loss_sim_self1 + loss_sim_self2 + loss_sim_g2s + slot_loss)
 
-                losses.update(loss.item())
+                value = loss.item()
+                if not math.isfinite(value) and not reported_invalid_loss:
+                    reported_invalid_loss = True
+                    print(f"First nonfinite loss at batch {step}: loss={value}, AMP scale={scaler.get_scale():g}, "
+                          f"cross-view={loss_sim_g2s.item():g}, self-view=({loss_sim_self1.item():g}, "
+                          f"{loss_sim_self2.item():g}), reconstruction={recon_loss.item():g}, "
+                          f"slot={slot_loss.item():g}, graph={graph_loss.item():g}, CACS={cacs_loss.item():g}, "
+                          f"distillation={distill_loss.item():g}")
+                losses.update(value)
                   
             scaler.scale(loss).backward()
             
@@ -363,11 +376,11 @@ def predict_vln_query(train_config, model, dataloader):
     model.eval()
     # Get output shape from a dummy input
     dummy_input1 = torch.randn(1, *dataloader.dataset[0][0].shape, device=train_config.device).half()
-    # # 取出 dataset 里一个样本的文本 ids 作为参考
+    # # Use text IDs from one dataset sample as a reference.
     # sample_ids = dataloader.dataset[0][1]   # shape: [seq_len], dtype: LongTensor
     # seq_len = sample_ids.shape[0]
 
-    # # 构造 dummy input: batch_size=1, vocab_size 假设 49408（OpenAI CLIP BPE 的大小）
+    # # Build a dummy input with batch size 1 and vocabulary size 49408 (OpenAI CLIP BPE).
     # vocab_size = 49408
     # dummy_input2 = torch.randint(
     #     low=0,
@@ -499,7 +512,7 @@ def predict_vigor(train_config, model, dataloader):
     total_samples = len(dataloader.dataset)
     img_features = torch.zeros((total_samples, *output_shape), dtype=torch.float32, device=train_config.device)
     # Assuming each id_current has 4 elements, adjust the dimension for ids
-    ids = torch.zeros((total_samples, 4), dtype=torch.long, device=train_config.device)  # 修改为二维张量以匹配ids_current的形状
+    ids = torch.zeros((total_samples, 4), dtype=torch.long, device=train_config.device)  # Match the two-dimensional shape of ids_current.
 
     with torch.no_grad(), autocast():
         for i, (img, ids_current) in enumerate(tqdm(dataloader)):

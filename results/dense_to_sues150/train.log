@@ -1,0 +1,22 @@
+loading DINOv2 model（dinov2_vitb14）...
+DINOv2 view token: True
+Evaluation images: 4000 queries, 200 gallery
+Training pairs: 13536, scheduled steps: 3384
+
+Shuffle Dataset:
+Original Length: 13536 - Length after Shuffle: 13536
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 0
+First Element ID: 000661 - Last Element ID: 001393
+Epoch 1: train loss 36.047
+Optimizer updates: 3369/3384, AMP scale 1024 -> 0.03125
+Relative parameter change over epoch: CLS 0.287698, MixVPR row projection 0.352999
+Extract Features:
+Compute Scores:
+Recall@1: 89.8500 - Recall@5: 97.4750 - Recall@10: 98.8750 - Recall@top1: 96.4000 - AP: 91.6127
+
+Shuffle Dataset:
+Original Length: 13536 - Length after Shuffle: 13536
+Break Counter: 0
+Pairs left out of last batch to avoid creating noise: 0
+First Element ID: 001665 - Last Element ID: 002014

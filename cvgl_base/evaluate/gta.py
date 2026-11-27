@@ -197,14 +197,14 @@ def evaluate(
 
         good_index_i = np.isin(index, matches_tensor[i]) 
         
-        # 计算 AP
+        # Compute AP.
         y_true = good_index_i.astype(int)
-        y_scores = np.arange(len(y_true), 0, -1)  # 分数与排名相反
-        if np.sum(y_true) > 0:  # 仅计算有正样本的情况
+        y_scores = np.arange(len(y_true), 0, -1)  # Assign higher scores to higher-ranked results.
+        if np.sum(y_true) > 0:  # Compute AP only when positive samples are present.
             ap = average_precision_score(y_true, y_scores)
             all_ap.append(ap)
         
-        # 计算 CMC
+        # Compute CMC.
         match_rank = np.where(good_index_i == 1)[0]
         if len(match_rank) > 0:
             cmc[match_rank[0]:] += 1
@@ -276,11 +276,11 @@ def evaluate(
         # plt.title('Smooth Curve with Discrete Points')
         # plt.legend()
 
-        # # 调整边框
+        # # Adjust the plot borders.
         # plt.gca().spines['top'].set_visible(False)
         # plt.gca().spines['right'].set_visible(False)
 
-        # 显示图表
+        # Display the plot.
         # plt.tight_layout()
         # plt.savefig('/home/xmuairmud/jyx/GTA-UAV-private/Game4Loc/images/plot_acc_threshold_samearea.png')
         print(y.tolist())

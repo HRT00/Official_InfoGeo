@@ -25,7 +25,7 @@ class ResNet(nn.Module):
             NotImplementedError: if the model_name corresponds to an unknown architecture. 
         """
         super().__init__()
-        self.model_name = model_name.lower()  # 将大写转化成小写
+        self.model_name = model_name.lower()  # Convert the model name to lowercase.
         self.layers_to_freeze = layers_to_freeze
 
         if pretrained:
@@ -58,10 +58,10 @@ class ResNet(nn.Module):
                 raise NotImplementedError(
                     'Backbone architecture not recognized!')
 
-        # freeze only if the model is pretrained 仅当模型已预先训练时才冻结
+        # Freeze layers only when using a pretrained model.
         if pretrained:
             if layers_to_freeze >= 0:
-                self.model.conv1.requires_grad_(False)  # 冻结神经网络层
+                self.model.conv1.requires_grad_(False)  # Freeze the layer.
                 self.model.bn1.requires_grad_(False)
             if layers_to_freeze >= 1:
                 self.model.layer1.requires_grad_(False)

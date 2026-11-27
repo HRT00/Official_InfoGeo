@@ -11,6 +11,27 @@ import math
 
 EPS = 1e-8
 
+def get_w_regularization(w1, w2):
+    """
+    Competition regularization on router weights.
+    w1, w2: Router weights with shape [B, K, 1].
+    Encourages polarized weights and variation across slots.
+    """
+    # Combine router weights from both views.
+    w = torch.cat([w1, w2], dim=0) # [2B, K, 1]
+
+    # Penalize intermediate weights.
+    # w * (1 - w) peaks at 0.5 and reaches zero at 0 and 1.
+    # Encourage weights toward either endpoint.
+    loss_polar = torch.mean(w * (1 - w))
+
+    # Encourage diversity across slots.
+    # Discourage identical weights across slots.
+    # Maximize the variance of w across K slots.
+    loss_div = - torch.var(w, dim=1).mean()
+
+    return 0.1 * loss_polar + 0.1 * loss_div
+
 def batched_cosine_sim(A: torch.Tensor, B: torch.Tensor, eps: float = EPS) -> torch.Tensor:
     # A, B: (B, K, D)
     A_n = F.normalize(A, p=2, dim=-1, eps=eps)
@@ -103,7 +124,30 @@ def compute_graph_laplacian(G: torch.Tensor, normalized: bool = True) -> torch.T
     return L
 
 
-def spectral_embedding(L: torch.Tensor, r: int = 4) -> torch.Tensor:
+class _StableEigenvectors(torch.autograd.Function):
+    """Differentiate eigenvectors of a real symmetric matrix across resolved eigenvalue gaps."""
+
+    @staticmethod
+    def forward(ctx, matrix):
+        values, vectors = torch.linalg.eigh(matrix)
+        ctx.save_for_backward(values, vectors)
+        return vectors
+
+    @staticmethod
+    def backward(ctx, grad_vectors):
+        values, vectors = ctx.saved_tensors
+        with torch.autocast(vectors.device.type, enabled=False):
+            gaps = values.unsqueeze(-2) - values.unsqueeze(-1)
+            tolerance = (torch.finfo(values.dtype).eps * values.shape[-1]
+                         * values.abs().amax(dim=-1, keepdim=True).unsqueeze(-1))
+            # Rotations inside an unresolved eigenspace have no unique derivative.
+            inverse_gaps = torch.where(gaps.abs() > tolerance, gaps.reciprocal(), 0.0)
+            adjoint = (vectors.mT @ grad_vectors.to(vectors.dtype)) * inverse_gaps
+            symmetric_adjoint = (adjoint + adjoint.mT) * 0.5
+            return vectors @ symmetric_adjoint @ vectors.mT
+
+
+def spectral_embedding(L: torch.Tensor, r: int = 4, stable_eigenvectors: bool = False) -> torch.Tensor:
     """
     Compute r smallest non-trivial eigenvectors of Laplacian per batch.
     L: (B, K, K) symmetric positive semidef.
@@ -115,7 +159,10 @@ def spectral_embedding(L: torch.Tensor, r: int = 4) -> torch.Tensor:
     L = L.float()
     # use torch.linalg.eigh (returns ascending eigenvalues)
     # To save memory, compute batchwise; torch.linalg.eigh supports batch
-    _, eigvecs = torch.linalg.eigh(L)  # eigvals: (B,K) ascending
+    if stable_eigenvectors:
+        eigvecs = _StableEigenvectors.apply(L)
+    else:
+        _, eigvecs = torch.linalg.eigh(L)  # eigvals: (B,K) ascending
     # skip first trivial eigenvector if K > r
     # choose indices start_idx..start_idx+r-1
     if K > r:
@@ -174,7 +221,8 @@ def reg_InfoNCE(Sa: torch.Tensor,
               att_maps_b: Optional[torch.Tensor] = None,
               graph_mode: str = 'cosine',
               r: int = 4,
-              lambda_struct: float = 1.0) -> dict:
+              lambda_struct: float = 1.0,
+              stable_eigenvectors: bool = False) -> torch.Tensor:
     """
     Compute SPOT losses for a batch:
      - spectral structural alignment loss L_struct
@@ -190,8 +238,8 @@ def reg_InfoNCE(Sa: torch.Tensor,
     Lb = compute_graph_laplacian(Gb, normalized=True)
 
     # 3) spectral embedding
-    Ua = spectral_embedding(La, r=r)  # (B, K, r)
-    Ub = spectral_embedding(Lb, r=r)
+    Ua = spectral_embedding(La, r=r, stable_eigenvectors=stable_eigenvectors)  # (B, K, r)
+    Ub = spectral_embedding(Lb, r=r, stable_eigenvectors=stable_eigenvectors)
 
     # 4) spectral alignment loss
     L_struct = orthogonal_procrustes_loss(Ua, Ub)
@@ -314,3 +362,70 @@ class WeightedInfoNCE(nn.Module):
         loss = (loss1 + loss2) / 2 + loss_ssl
 
         return loss
+
+
+def relational_distillation(student_features, teacher_features, metric='euclidean', temperature=1.0, normalize=True):
+    """
+    Compute Relational Distillation loss between student and teacher features.
+
+    Args:
+        student_features: Tensor of shape (batch_size, dim_s)
+        teacher_features: Tensor of shape (batch_size, dim_t)
+        metric: 'euclidean' or 'cosine' to measure relational structure.
+        temperature: scaling factor for distances or similarities (if applicable).
+        normalize: whether to normalize distances by teacher's mean distance.
+
+    Returns:
+        loss: scalar Tensor representing the relational distillation loss.
+    """
+    assert student_features.dim() == 2 and teacher_features.dim() == 2, "Features should be 2D tensors"
+    N = student_features.size(0)
+
+    if metric == 'euclidean':
+        # Normalize features to unit vectors
+        student_norm = F.normalize(student_features, p=2, dim=1)
+        teacher_norm = F.normalize(teacher_features, p=2, dim=1)
+        # Pairwise differences for teacher and student (shape: N x N x D)
+        teacher_diffs = teacher_features.unsqueeze(1) - teacher_features.unsqueeze(0)
+        student_diffs = student_features.unsqueeze(1) - student_features.unsqueeze(0)
+        # Pairwise Euclidean distances (shape: N x N)
+        teacher_dists = torch.norm(teacher_diffs, dim=2, p=2)
+        student_dists = torch.norm(student_diffs, dim=2, p=2)
+
+        if normalize:
+            # Normalize by mean teacher distance to focus on relative structure
+            eps = 1e-8
+            teacher_rel = teacher_dists / teacher_dists.mean() + eps
+            student_rel = student_dists / student_dists.mean() + eps
+        else:
+            teacher_rel = teacher_dists
+            student_rel = student_dists
+
+        # Apply temperature scaling if needed
+        if temperature != 1.0:
+            teacher_rel = teacher_rel / temperature
+            student_rel = student_rel / temperature
+
+        # Compute MSE loss between relational structures
+        loss = F.mse_loss(student_rel, teacher_rel)
+
+    elif metric == 'cosine':
+        # Normalize features to unit vectors
+        student_norm = F.normalize(student_features, p=2, dim=1)
+        teacher_norm = F.normalize(teacher_features, p=2, dim=1)
+        # Compute pairwise cosine similarity matrices (shape: N x N)
+        teacher_sim = torch.matmul(teacher_norm, teacher_norm.t())
+        student_sim = torch.matmul(student_norm, student_norm.t())
+
+        # Apply temperature scaling to similarities (logits) if needed
+        if temperature != 1.0:
+            teacher_sim = teacher_sim / temperature
+            student_sim = student_sim / temperature
+
+        # Compute MSE loss between relational structures
+        loss = F.mse_loss(student_sim, teacher_sim)
+
+    else:
+        raise ValueError("Unsupported metric. Use 'euclidean' or 'cosine'.")
+
+    return loss

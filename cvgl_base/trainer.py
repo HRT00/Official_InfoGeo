@@ -142,7 +142,7 @@ def predict_vigor(train_config, model, dataloader):
     total_samples = len(dataloader.dataset)
     img_features = torch.zeros((total_samples, *output_shape), dtype=torch.float32, device=train_config.device)
     # Assuming each id_current has 4 elements, adjust the dimension for ids
-    ids = torch.zeros((total_samples, 4), dtype=torch.long, device=train_config.device)  # 修改为二维张量以匹配ids_current的形状
+    ids = torch.zeros((total_samples, 4), dtype=torch.long, device=train_config.device)  # Match the two-dimensional shape of ids_current.
 
     with torch.no_grad(), autocast():
         for i, (img, ids_current) in enumerate(tqdm(dataloader)):

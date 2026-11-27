@@ -20,18 +20,18 @@ _DINO_FACETS = Literal["query", "key", "value", "token"]
 class LightweightQueryFormer(nn.Module):
     """
     Simplified Lightweight QueryFormer (Gated Attention)
-    - 输入: patch tokens [B, F, C]
-    - 输出: prompts [B, N, C]
+    - Input patch tokens [B, F, C].
+    - Output prompts [B, N, C].
     """
     def __init__(self, embed_dim, num_prompts=8, ffn_dim=2048, dropout=0.1):
         super().__init__()
         self.num_prompts = num_prompts
-        self.query_tokens = nn.Parameter(torch.randn(num_prompts, embed_dim))  # 可学习 query
+        self.query_tokens = nn.Parameter(torch.randn(num_prompts, embed_dim))  # Learnable queries
 
         # gating mechanism
         self.gate_proj = nn.Linear(embed_dim, embed_dim)
 
-        # FFN (轻量 MLP)
+        # Feed-forward network with a small MLP
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, ffn_dim),
             nn.GELU(),
@@ -50,62 +50,62 @@ class LightweightQueryFormer(nn.Module):
         B, F, C = patch_tokens.shape
         queries = self.query_tokens.unsqueeze(0).expand(B, -1, -1)  # [B, N, C]
 
-        # gated cross-attention (简化版)
+        # Simplified gated cross-attention
         # score = (Q * Gate(Q)) @ P^T
         q_proj = self.gate_proj(self.norm1(queries))   # [B, N, C]
         attn_logits = torch.einsum('bnc,bfc->bnf', q_proj, patch_tokens) / (C ** 0.5)  # [B, N, F]
         attn = torch.softmax(attn_logits, dim=-1)
 
-        # 聚合 patch tokens
+        # Aggregate patch tokens.
         attn_output = torch.matmul(attn, patch_tokens)  # [B, N, C]
 
-        # 残差 + FFN
+        # Residual connection and feed-forward network
         x = queries + attn_output
         x = x + self.ffn(self.norm2(x))
         return x  # [B, N, C]
 
 class MLP_PromptGenerator(nn.Module):
     """
-    2025风格: 用MLP非线性映射生成prompts
-    参考 LLaVA-Next, Qwen-VL-2 的视觉prompt做法
+    Generate prompts through a nonlinear MLP mapping.
+    Inspired by visual prompting in LLaVA-Next and Qwen-VL-2.
     """
     def __init__(self, embed_dim, num_prompts=8, hidden_dim=None):
         super().__init__()
         self.num_prompts = num_prompts
-        hidden_dim = hidden_dim or embed_dim * 2  # 常见设置: 扩大一倍
+        hidden_dim = hidden_dim or embed_dim * 2  # Expand the hidden dimension by a factor of two.
 
-        # token → prompt 映射
+        # Map tokens to prompts.
         # self.mlp = nn.Sequential(
         #     nn.LayerNorm(embed_dim),
         #     nn.Linear(embed_dim, hidden_dim),
-        #     nn.GELU(),   # 或 SwiGLU 更前沿
+        #     nn.GELU(),   # SwiGLU is another activation option.
         #     nn.Linear(hidden_dim, num_prompts * embed_dim)
         # )
 
         self.layer_norm = nn.LayerNorm(embed_dim)
         self.mlp = nn.Sequential(
             # nn.Linear(embed_dim, hidden_dim),
-            nn.GELU(),   # 或 SwiGLU 更前沿
+            nn.GELU(),   # SwiGLU is another activation option.
             nn.Linear(1024, num_prompts)
         )
         # self.mlp = nn.Sequential(
         #     # nn.Linear(embed_dim, hidden_dim),
-        #     nn.GELU(),   # 或 SwiGLU 更前沿
+        #     nn.GELU(),   # SwiGLU is another activation option.
         #     nn.Linear(787, num_prompts)
         # )
 
     def forward(self, patch_tokens):
         """
         patch_tokens: [B, F, C]
-        输出: prompts [B, num_prompts, C]
+        Output prompts [B, num_prompts, C].
         """
         B, F, C = patch_tokens.shape
 
-        # step1: 先对所有patch求平均 (更稳定)，也可换成 learnable pooling
+        # Step 1. Average all patch tokens before projection.
         patch_tokens = self.layer_norm(patch_tokens)
         pooled = self.mlp(patch_tokens.permute(0, 2, 1))  # [B, C]
 
-        # step2: MLP 非线性投影
+        # Step 2. Apply a nonlinear MLP projection.
         # prompts = self.mlp(pooled)  # [B, num_prompts*C]
 
         # step3: reshape
@@ -117,19 +117,19 @@ class MLP_PromptGenerator(nn.Module):
 
 class MLP_PromptGenerator_(nn.Module):
     """
-    2025风格: 用MLP非线性映射生成prompts
-    参考 LLaVA-Next, Qwen-VL-2 的视觉prompt做法
+    Generate prompts through a nonlinear MLP mapping.
+    Inspired by visual prompting in LLaVA-Next and Qwen-VL-2.
     """
     def __init__(self, embed_dim, num_prompts=8, hidden_dim=None):
         super().__init__()
         self.num_prompts = num_prompts
-        hidden_dim = hidden_dim or embed_dim * 2  # 常见设置: 扩大一倍
+        hidden_dim = hidden_dim or embed_dim * 2  # Expand the hidden dimension by a factor of two.
 
-        # token → prompt 映射
+        # Map tokens to prompts.
         # self.mlp = nn.Sequential(
         #     nn.LayerNorm(embed_dim),
         #     nn.Linear(embed_dim, hidden_dim),
-        #     nn.GELU(),   # 或 SwiGLU 更前沿
+        #     nn.GELU(),   # SwiGLU is another activation option.
         #     nn.Linear(hidden_dim, num_prompts * embed_dim)
         # )
 
@@ -139,15 +139,15 @@ class MLP_PromptGenerator_(nn.Module):
     def forward(self, patch_tokens):
         """
         patch_tokens: [B, F, C]
-        输出: prompts [B, num_prompts, C]
+        Output prompts [B, num_prompts, C].
         """
         B, F, C = patch_tokens.shape
 
-        # step1: 先对所有patch求平均 (更稳定)，也可换成 learnable pooling
+        # Step 1. Average all patch tokens before projection.
         patch_tokens = self.layer_norm(patch_tokens)
         pooled = self.mlp(patch_tokens.permute(0, 2, 1))  # [B, C]
 
-        # step2: MLP 非线性投影
+        # Step 2. Apply a nonlinear MLP projection.
         # prompts = self.mlp(pooled)  # [B, num_prompts*C]
 
         # step3: reshape
@@ -160,24 +160,24 @@ class MLP_PromptGenerator_(nn.Module):
 class MLP_TopKPromptGenerator(nn.Module):
     """
     Top-k Prompt Generator:
-    - 直接选取 top-k = num_prompts 个 patch tokens 作为候选（按 learnable score）
-    - 对每个被选 token 应用 MLP 映射，得到对应的 prompt embedding
-    - 若 num_patches < num_prompts，则用已选 prompts 的均值填充
-    输出: prompts [B, num_prompts, C]
+    - Select up to num_prompts patch tokens using learned scores.
+    - Map each selected token to a prompt embedding with an MLP.
+    - If num_patches < num_prompts, pad with the mean of the selected prompts.
+    Output prompts [B, num_prompts, C].
     """
     def __init__(self, embed_dim, num_prompts=8, hidden_dim=None):
         super().__init__()
         self.num_prompts = num_prompts
         hidden_dim = hidden_dim or embed_dim * 2
 
-        # token重要性评分（标量）
+        # Scalar token importance scores
         self.score_proj = nn.Linear(embed_dim, 1)
 
-        # token 层归一化
+        # Token layer normalization
         self.layer_norm = nn.LayerNorm(embed_dim)
 
-        # 每个被选 token 映射为 prompt 的 MLP（对最后一维进行映射）
-        # 输入形状可以是 [B, k, C]，Linear 会应用到最后一维
+        # Map each selected token to a prompt along the last dimension.
+        # Linear operates on the last dimension of an input shaped [B, k, C].
         self.token_to_prompt = nn.Sequential(
             nn.Linear(embed_dim, hidden_dim),
             nn.GELU(),
@@ -194,40 +194,40 @@ class MLP_TopKPromptGenerator(nn.Module):
         # 1) LayerNorm
         tokens = self.layer_norm(patch_tokens)  # [B, num_patches, C]
 
-        # 2) 计算分数并选 top-k（k = num_prompts 或 num_patches if smaller）
+        # 2. Score tokens and select min(num_prompts, num_patches) tokens.
         scores = self.score_proj(tokens).squeeze(-1)  # [B, num_patches]
         k = min(self.num_prompts, num_patches)
         _, topk_idx = torch.topk(scores, k, dim=1)  # [B, k]
 
-        # 3) 根据索引提取 top-k tokens
-        # 使用 gather：扩展索引以匹配最后一维
+        # 3. Gather the top-k tokens by index.
+        # Expand the indices to match the last dimension for gather.
         topk_tokens = torch.gather(tokens, 1, topk_idx.unsqueeze(-1).expand(-1, -1, C))  # [B, k, C]
 
-        # 4) 每个被选 token 映射为 prompt embedding（保持 per-token 多样性）
+        # 4. Map each selected token to its own prompt embedding.
         prompts_k = self.token_to_prompt(topk_tokens)  # [B, k, C]
 
-        # 5) 若 k < num_prompts（patch 太少），用均值填充剩余 slot
+        # 5. If k < num_prompts, fill the remaining slots with the mean prompt.
         if k < self.num_prompts:
-            # 用已选 prompts 的均值作为填充（比 0 更稳定）
+            # Pad with the mean of the selected prompts.
             filler = prompts_k.mean(dim=1, keepdim=True).expand(B, self.num_prompts - k, C)  # [B, num_prompts-k, C]
             prompts = torch.cat([prompts_k, filler], dim=1)  # [B, num_prompts, C]
         else:
-            prompts = prompts_k  # 已经等于 num_prompts
+            prompts = prompts_k  # The prompt count already equals num_prompts.
 
         return prompts  # [B, num_prompts, C]
 
 
 class ChannelPromptGenerator(nn.Module):
     """
-    改进版：通道注意力 + MLP prompt 映射
-    设计目标：得到每个通道的权重 (B, 1, C)，再将 (B, F, C) → (B, num_prompts, C)
+    Channel attention followed by MLP prompt mapping.
+    Compute channel weights (B, 1, C), then map (B, F, C) to (B, num_prompts, C).
     """
     def __init__(self, embed_dim, num_prompts=8, hidden_dim=None):
         super().__init__()
         self.num_prompts = num_prompts
         hidden_dim = hidden_dim or embed_dim * 2
 
-        # ---- 通道注意力生成器 (B, F, C) → (B, 1, C)
+        # Channel attention maps (B, F, C) to (B, 1, C).
         self.channel_attn = nn.Sequential(
             nn.LayerNorm(embed_dim),
             nn.Linear(embed_dim, embed_dim),
@@ -236,7 +236,7 @@ class ChannelPromptGenerator(nn.Module):
             nn.Sigmoid()
         )
 
-        # ---- Prompt 生成 MLP
+        # Prompt generation MLP
         self.mlp = nn.Sequential(
             nn.LayerNorm(embed_dim),
             nn.Linear(embed_dim, hidden_dim),
@@ -244,54 +244,54 @@ class ChannelPromptGenerator(nn.Module):
             nn.Linear(hidden_dim, embed_dim)
         )
 
-        # ---- 融合层：F → num_prompts
+        # Fusion layer maps F to num_prompts.
         self.fusion = nn.Linear(1, num_prompts)
 
     def forward(self, patch_tokens):
         """
         patch_tokens: [B, F, C]
-        输出: prompts [B, num_prompts, C]
+        Output prompts [B, num_prompts, C].
         """
         B, F, C = patch_tokens.shape
 
-        # ---- Step1: 通道注意力 (B, F, C) → (B, 1, C)
-        # 对每个通道独立生成注意力
+        # Step 1. Generate channel attention from (B, F, C) to (B, 1, C).
+        # Generate an attention weight for each channel.
         channel_weights = self.channel_attn(patch_tokens.mean(dim=1, keepdim=True))  # [B, 1, C]
 
-        # ---- Step2: 应用通道注意力
+        # Step 2. Apply channel attention.
         pooled = channel_weights * patch_tokens  # [B, F, C]
 
-        # ---- Step3: MLP 映射（逐 token）
+        # Step 3. Apply the MLP to each token.
         pooled = self.mlp(pooled)  # [B, F, C]
 
-        # ---- Step4: 将 F 压缩到 num_prompts
-        # 方法：沿 F 维取平均后再映射为 num_prompts
+        # Step 4. Reduce F to num_prompts.
+        # Average along F, then map to num_prompts.
         pooled_mean = pooled.mean(dim=2, keepdim=True)  # [B, F, 1]
         weights = self.fusion(pooled_mean.transpose(1, 2))  # [B, num_prompts, F]
         attn = F.softmax(weights, dim=-1)  # [B, num_prompts, F]
 
-        # ---- Step5: 聚合得到最终 prompts
+        # Step 5. Aggregate the final prompts.
         prompts = torch.bmm(attn, pooled)  # [B, num_prompts, C]
 
         return prompts
 
 class SwiGLU(nn.Module):
     """
-    SwiGLU 激活函数，源自 PaLM 论文，在 Llama / Mistral 中广泛使用。
-    比 GELU / ReLU 更具表现力。
+    SwiGLU activation from the PaLM paper, also used in Llama and Mistral.
+    Combines a SiLU gate with a linear branch.
     """
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         x: [..., 2 * D]
-        输出: [..., D]
+        Output shape [..., D].
         """
         x, gate = x.chunk(2, dim=-1)
         return F.silu(gate) * x
 
 class MLP(nn.Module):
     """
-    一个更通用、可配置的前馈网络 (FFN) 模块。
-    参考 ViT / Llama 等模型中的 FFN 设计。
+    Configurable feed-forward network (FFN).
+    Based on FFN designs used in models such as ViT and Llama.
     """
     def __init__(
         self,
@@ -305,7 +305,7 @@ class MLP(nn.Module):
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
         
-        # SwiGLU 需要特殊处理，因为它的第一个线性层输出维度是两倍
+        # SwiGLU requires twice the output width in the first linear layer.
         self.is_swiglu = act_layer is SwiGLU
         ffn_hidden_features = hidden_features * 2 if self.is_swiglu else hidden_features
 
@@ -322,43 +322,43 @@ class MLP(nn.Module):
         x = self.drop(x)
         return x
 
-# ---- 2. 重构后的 PatchPromptGenerator ----
+# PatchPromptGenerator
 
 class PatchPromptGeneratorV2(nn.Module):
     """
     Patch-Level Attention Prompt Generator (V2 - 2025 Style)
 
-    通过注意力机制将大量的图像 Patch 特征聚合成一小组高信息量的视觉 Prompt。
-    设计灵感来源于最新的多模态大模型，如 LLaVA-Next, Qwen2-VL, InternVL2。
+    Aggregate image patch features into a small set of visual prompts using attention.
+    Inspired by multimodal models such as LLaVA-Next, Qwen2-VL, and InternVL2.
 
-    改进点:
-    - 使用可配置的 MLP 模块，轻松切换激活函数 (如 SwiGLU)。
-    - 在最终的投影层加入了残差连接，增强了模型的稳定性和表现力。
-    - 结构更清晰，配置更灵活（使用 mlp_ratio）。
-    - 提供了完整的类型注解和文档。
+    Features include the following.
+    - Configurable MLP activation, including SwiGLU.
+    - Optional residual connection after the final projection.
+    - Configurable hidden dimension through mlp_ratio.
+    - Type annotations and documentation.
     """
     def __init__(
         self,
         embed_dim: int,
         num_prompts: int = 8,
         mlp_ratio: float = 4.0,
-        act_layer: Type[nn.Module] = SwiGLU, # 默认使用更先进的 SwiGLU
+        act_layer: Type[nn.Module] = SwiGLU, # Use SwiGLU by default.
         add_residual: bool = True,
     ):
         """
         Args:
-            embed_dim (int): 输入 Patch Token 的特征维度 (C)。
-            num_prompts (int): 要生成的视觉 Prompt 的数量。
-            mlp_ratio (float): MLP 中间隐藏层的维度相对于 embed_dim 的比例。
-            act_layer (Type[nn.Module]): FFN 中使用的激活函数类。
-            add_residual (bool): 是否在投影层后添加残差连接。
+            embed_dim (int): Input patch token dimension C.
+            num_prompts (int): Number of visual prompts to generate.
+            mlp_ratio (float): Ratio of the MLP hidden dimension to embed_dim.
+            act_layer (Type[nn.Module]): Activation class used in the FFN.
+            add_residual (bool): Whether to add a residual connection after projection.
         """
         super().__init__()
         self.num_prompts = num_prompts
         self.add_residual = add_residual
         hidden_dim = int(embed_dim * mlp_ratio)
 
-        # ---- Patch Attention Scorer: 生成每个 patch 对各个 prompt 的注意力权重
+        # Patch Attention Scorer generates weights from each patch to each prompt.
         # LayerNorm -> MLP -> Output
         self.scorer = nn.Sequential(
             nn.LayerNorm(embed_dim),
@@ -370,7 +370,7 @@ class PatchPromptGeneratorV2(nn.Module):
             )
         )
 
-        # ---- Prompt Projector: 对聚合后的特征进行 refine
+        # Prompt Projector refines the aggregated features.
         # LayerNorm -> MLP
         self.projector = nn.Sequential(
             nn.LayerNorm(embed_dim),
@@ -385,33 +385,33 @@ class PatchPromptGeneratorV2(nn.Module):
     def forward(self, patch_features: torch.Tensor) -> torch.Tensor:
         """
         Args:
-            patch_features (torch.Tensor): 输入的图像 Patch 特征, shape: [B, F, C]
+            patch_features (torch.Tensor): Input image patch features of shape [B, F, C].
                                            B = Batch size
                                            F = Number of patches (e.g., 256 for 224x224 image)
                                            C = Embedding dimension
 
         Returns:
-            torch.Tensor: 生成的视觉 prompts, shape: [B, num_prompts, C]
+            torch.Tensor: Generated visual prompts of shape [B, num_prompts, C].
         """
 
-        # Step 1: 计算每个 Patch 对每个 Prompt 的注意力分数
+        # Step 1. Compute attention scores from each patch to each prompt.
         # [B, F, C] -> [B, F, num_prompts]
         attention_scores = self.scorer(patch_features)
 
-        # Step 2: 沿 Patch 维度 (F) 进行 softmax 归一化，得到权重
+        # Step 2. Normalize weights with softmax along the patch dimension F.
         # transpose: [B, num_prompts, F]
         # softmax:   [B, num_prompts, F]
         attention_weights = F.softmax(attention_scores.transpose(1, 2), dim=-1)
 
-        # Step 3: 加权求和，将 F 个 Patch 特征聚合成 num_prompts 个向量
+        # Step 3. Aggregate F patch features into num_prompts vectors with a weighted sum.
         # torch.bmm([B, num_prompts, F], [B, F, C]) -> [B, num_prompts, C]
         aggregated_prompts = torch.bmm(attention_weights, patch_features)
 
-        # Step 4: 通过 Projector 进行特征变换和精炼 (Refinement)
+        # Step 4. Transform and refine the features with the projector.
         # [B, num_prompts, C] -> [B, num_prompts, C]
         refined_prompts = self.projector(aggregated_prompts)
 
-        # Step 5 (Optional but Recommended): 添加残差连接
+        # Step 5. Optionally add a residual connection.
         if self.add_residual:
             prompts = aggregated_prompts + refined_prompts
         else:
@@ -422,7 +422,7 @@ class PatchPromptGeneratorV2(nn.Module):
 class DinoV2_prompt(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, style_aligner, model_name: _DINO_V2_MODELS, layer1: int = 39,  facet1: _DINO_FACETS = "value", use_cls=False,
@@ -441,10 +441,10 @@ class DinoV2_prompt(nn.Module):
         """
         super().__init__()
         self.style_aligner = style_aligner
-        self.model_name = model_name.lower()[:-7]  # 将大写转化为小写
+        self.model_name = model_name.lower()[:-7]  # Convert the model name to lowercase.
         self.layer1 = layer1
 
-        self.pretrained = pretrained  # 是否采用与训练参数
+        self.pretrained = pretrained  # Whether to use pretrained weights.
         self.use_cls = use_cls
         self.norm_descs = norm_descs
         self.device = torch.device(device)
@@ -453,37 +453,37 @@ class DinoV2_prompt(nn.Module):
 
         print(f'loading DINOv2 model（{self.model_name}）...')
         if 'vitg14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2_wt/dinov2_vitg14_pretrain.pth'))
             if self.layer1 > 39:
                 print('请确认layer的正确性！vitg14最高block层为39层')
                 exit()
         elif 'vitl14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitl14_pretrain.pth'))
             if self.layer1 > 23:
                 print('请确认layer的正确性！vitl14最高block层为23层')
                 exit()
         # elif 'vitl14_reg' in self.model_name:
-        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
         #     self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2/dinov2_vitl14_reg4_pretrain.pth'))
         #     if self.layer1 > 23:
-        #         print('请确认layer的正确性！vitl14最高block层为23层')
+        #         print('Check the layer setting. The maximum block index for vitl14 is 23.')
         #         exit()
         elif 'dinov2'in self.model_name and 'vitb14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitb14_pretrain.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'dinov3'in self.model_name and 'vitb16' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3_wt/dinov3_vitb16_pretrain_lvd1689m.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'vits14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home/liuyh/GEO/code/CVCities-main/dinov2/dinov2_vits14_pretrain.pth'))
             if self.layer1 > 11:
                 print('请确认layer的正确性！vits14最高block层为12层')
@@ -518,43 +518,43 @@ class DinoV2_prompt(nn.Module):
         if self.training:
             x = self.dino_model.prepare_tokens_with_masks(x, masks)
 
-            # 注意：保持原来代码的分片方式（cls 在 0），原作者用 x[:,2:,:] 作为 patch tokens
+            # Preserve the token slicing, with CLS at index 0 and patches selected by x[:, 2:, :].
             cls_token = x[:, :1, :]        # [B,1,C]
-            patch_tokens = x[:, 2:, :]     # [B, F, C]  （与原代码一致）
-            # 由 patch tokens 生成 prompts
+            patch_tokens = x[:, 2:, :]     # [B, F, C], following the original token layout.
+            # Generate prompts from patch tokens.
             prompts = self.prompt_gen(patch_tokens)
 
-            # 将 prompts 插入到 token 序列中（插入在 cls token 之后）
+            # Insert prompts after the CLS token.
             x = torch.cat([cls_token, prompts, patch_tokens], dim=1)
 
-            # 遍历 block，保存前三层输出
+            # Iterate over transformer blocks and collect intermediate outputs.
             for blk_num, blk in enumerate(self.dino_model.blocks):
-                if blk_num < 1:   # 前3层
+                if blk_num < 1:   # Select the early blocks.
                     # compx_aligned = self.style_aligner(blk_num, x[:, 1:self.num_prompts+1, :], style_x[blk_num])
                     compx_aligned = self.style_aligner(blk_num, x[:, 1:self.num_prompts+1, :])
                     x = torch.cat([x[:, :1, :], compx_aligned, x[:, self.num_prompts+1:, :]], dim=1)
 
             x = self.dino_model.norm(x)
 
-            # 去掉 CLS 和 prompts，保留 patch tokens
+            # Remove CLS and prompt tokens, retaining patch tokens.
             x = x[:, 1 + self.num_prompts:, :]
 
             bs, f, c = x.shape
 
-            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # 拆分通道，转换成特征图形式
+            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # Reshape the token sequence into a spatial feature map.
 
             return x.permute(0, 3, 1, 2)
         else:
             x = self.dino_model.forward_features(x)
-            x = x['x_norm_patchtokens']  # 取无cls的输出
+            x = x['x_norm_patchtokens']  # Select patch outputs without the CLS token.
             bs, f, c = x.shape
-            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # 拆分通道，转换成特征图形式
+            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # Reshape the token sequence into a spatial feature map.
             return x.permute(0, 3, 1, 2)
 
 class DinoV2_prompt_tta(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, style_aligner, model_name: _DINO_V2_MODELS, layer1: int = 39,  facet1: _DINO_FACETS = "value", use_cls=False,
@@ -573,10 +573,10 @@ class DinoV2_prompt_tta(nn.Module):
         """
         super().__init__()
         self.style_aligner = style_aligner
-        self.model_name = model_name.lower()[:-4]  # 将大写转化为小写
+        self.model_name = model_name.lower()[:-4]  # Convert the model name to lowercase.
         self.layer1 = layer1
 
-        self.pretrained = pretrained  # 是否采用与训练参数
+        self.pretrained = pretrained  # Whether to use pretrained weights.
         self.use_cls = use_cls
         self.norm_descs = norm_descs
         self.device = torch.device(device)
@@ -585,37 +585,37 @@ class DinoV2_prompt_tta(nn.Module):
 
         print(f'loading DINOv2 model（{self.model_name}）...')
         if 'vitg14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2_wt/dinov2_vitg14_pretrain.pth'))
             if self.layer1 > 39:
                 print('请确认layer的正确性！vitg14最高block层为39层')
                 exit()
         elif 'vitl14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitl14_pretrain.pth'))
             if self.layer1 > 23:
                 print('请确认layer的正确性！vitl14最高block层为23层')
                 exit()
         # elif 'vitl14_reg' in self.model_name:
-        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
         #     self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2/dinov2_vitl14_reg4_pretrain.pth'))
         #     if self.layer1 > 23:
-        #         print('请确认layer的正确性！vitl14最高block层为23层')
+        #         print('Check the layer setting. The maximum block index for vitl14 is 23.')
         #         exit()
         elif 'dinov2'in self.model_name and 'vitb14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitb14_pretrain.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'dinov3'in self.model_name and 'vitb16' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3_wt/dinov3_vitb16_pretrain_lvd1689m.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'vits14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home/liuyh/GEO/code/CVCities-main/dinov2/dinov2_vits14_pretrain.pth'))
             if self.layer1 > 11:
                 print('请确认layer的正确性！vits14最高block层为12层')
@@ -651,30 +651,30 @@ class DinoV2_prompt_tta(nn.Module):
             x = self.dino_model.prepare_tokens_with_masks(x, masks)
             # x = x[0] # for DINOv3
 
-            # 注意：保持原来代码的分片方式（cls 在 0），原作者用 x[:,2:,:] 作为 patch tokens
+            # Preserve the token slicing, with CLS at index 0 and patches selected by x[:, 2:, :].
             cls_token = x[:, :1, :]        # [B,1,C]
-            patch_tokens = x[:, 2:, :]     # [B, F, C]  （与原代码一致）
-            # 由 patch tokens 生成 prompts
+            patch_tokens = x[:, 2:, :]     # [B, F, C], following the original token layout.
+            # Generate prompts from patch tokens.
             prompts = self.prompt_gen(patch_tokens)
 
-            # 将 prompts 插入到 token 序列中（插入在 cls token 之后）
+            # Insert prompts after the CLS token.
             x = torch.cat([cls_token, prompts, patch_tokens], dim=1)
 
-            # 遍历 block，保存前三层输出
+            # Iterate over transformer blocks and collect intermediate outputs.
             for blk_num, blk in enumerate(self.dino_model.blocks):
                 x = blk(x)
-                if blk_num < 1:   # 前1层
+                if blk_num < 1:   # Select the first block.
                     compx_aligned = self.style_aligner(blk_num, x[:, 1:self.num_prompts+1, :], style_x[blk_num])
                     x = torch.cat([x[:, :1, :], compx_aligned, x[:, self.num_prompts+1:, :]], dim=1)
 
             x = self.dino_model.norm(x)
 
-            # 去掉 CLS 和 prompts，保留 patch tokens
+            # Remove CLS and prompt tokens, retaining patch tokens.
             x = x[:, 1 + self.num_prompts:, :]
 
             bs, f, c = x.shape
 
-            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # 拆分通道，转换成特征图形式
+            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # Reshape the token sequence into a spatial feature map.
 
             return x.permute(0, 3, 1, 2)
             # return x
@@ -682,30 +682,30 @@ class DinoV2_prompt_tta(nn.Module):
             x = self.dino_model.prepare_tokens_with_masks(x, masks)
             # x = x[0]
 
-            # 注意：保持原来代码的分片方式（cls 在 0），原作者用 x[:,2:,:] 作为 patch tokens
+            # Preserve the token slicing, with CLS at index 0 and patches selected by x[:, 2:, :].
             cls_token = x[:, :1, :]        # [B,1,C]
-            patch_tokens = x[:, 2:, :]     # [B, F, C]  （与原代码一致）
-            # 由 patch tokens 生成 prompts
+            patch_tokens = x[:, 2:, :]     # [B, F, C], following the original token layout.
+            # Generate prompts from patch tokens.
             prompts = self.prompt_gen(patch_tokens)
 
-            # 将 prompts 插入到 token 序列中（插入在 cls token 之后）
+            # Insert prompts after the CLS token.
             x = torch.cat([cls_token, prompts, patch_tokens], dim=1)
 
-            # 遍历 block，保存前三层输出
+            # Iterate over transformer blocks and collect intermediate outputs.
             for blk_num, blk in enumerate(self.dino_model.blocks):
                 x = blk(x)
-                if blk_num < 1:   # 前3层
+                if blk_num < 1:   # Select the early blocks.
                     compx_aligned = self.style_aligner(blk_num, x[:, 1:self.num_prompts+1, :])
                     x = torch.cat([x[:, :1, :], compx_aligned, x[:, self.num_prompts+1:, :]], dim=1)
 
             x = self.dino_model.norm(x)
 
-            # 去掉 CLS 和 prompts，保留 patch tokens
+            # Remove CLS and prompt tokens, retaining patch tokens.
             x = x[:, 1 + self.num_prompts:, :]
 
             bs, f, c = x.shape
 
-            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # 拆分通道，转换成特征图形式
+            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # Reshape the token sequence into a spatial feature map.
 
             return x.permute(0, 3, 1, 2)
             # return x
@@ -713,7 +713,7 @@ class DinoV2_prompt_tta(nn.Module):
 class DinoV2_prompt_tta_vis_style(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, style_aligner, model_name: _DINO_V2_MODELS, layer1: int = 39,  facet1: _DINO_FACETS = "value", use_cls=False,
@@ -732,10 +732,10 @@ class DinoV2_prompt_tta_vis_style(nn.Module):
         """
         super().__init__()
         self.style_aligner = style_aligner
-        self.model_name = model_name.lower()[:-4]  # 将大写转化为小写
+        self.model_name = model_name.lower()[:-4]  # Convert the model name to lowercase.
         self.layer1 = layer1
 
-        self.pretrained = pretrained  # 是否采用与训练参数
+        self.pretrained = pretrained  # Whether to use pretrained weights.
         self.use_cls = use_cls
         self.norm_descs = norm_descs
         self.device = torch.device(device)
@@ -744,31 +744,31 @@ class DinoV2_prompt_tta_vis_style(nn.Module):
 
         print(f'loading DINOv2 model（{self.model_name}）...')
         if 'vitg14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2_wt/dinov2_vitg14_pretrain.pth'))
             if self.layer1 > 39:
                 print('请确认layer的正确性！vitg14最高block层为39层')
                 exit()
         elif 'vitl14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitl14_pretrain.pth'))
             if self.layer1 > 23:
                 print('请确认layer的正确性！vitl14最高block层为23层')
                 exit()
         # elif 'vitl14_reg' in self.model_name:
-        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
         #     self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2/dinov2_vitl14_reg4_pretrain.pth'))
         #     if self.layer1 > 23:
-        #         print('请确认layer的正确性！vitl14最高block层为23层')
+        #         print('Check the layer setting. The maximum block index for vitl14 is 23.')
         #         exit()
         elif 'vitb14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitb14_pretrain.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'vits14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home/liuyh/GEO/code/CVCities-main/dinov2/dinov2_vits14_pretrain.pth'))
             if self.layer1 > 11:
                 print('请确认layer的正确性！vits14最高block层为12层')
@@ -798,59 +798,59 @@ class DinoV2_prompt_tta_vis_style(nn.Module):
         if self.training:
             x = self.dino_model.prepare_tokens_with_masks(x, masks)
 
-            # 注意：保持原来代码的分片方式（cls 在 0），原作者用 x[:,2:,:] 作为 patch tokens
+            # Preserve the token slicing, with CLS at index 0 and patches selected by x[:, 2:, :].
             cls_token = x[:, :1, :]        # [B,1,C]
-            patch_tokens = x[:, 2:, :]     # [B, F, C]  （与原代码一致）
-            # 由 patch tokens 生成 prompts
+            patch_tokens = x[:, 2:, :]     # [B, F, C], following the original token layout.
+            # Generate prompts from patch tokens.
             prompts = self.prompt_gen(patch_tokens)
 
-            # 将 prompts 插入到 token 序列中（插入在 cls token 之后）
+            # Insert prompts after the CLS token.
             x = torch.cat([cls_token, prompts, patch_tokens], dim=1)
 
-            # 遍历 block，保存前三层输出
+            # Iterate over transformer blocks and collect intermediate outputs.
             for blk_num, blk in enumerate(self.dino_model.blocks):
                 x = blk(x)
-                if blk_num < 1:   # 前3层
+                if blk_num < 1:   # Select the early blocks.
                     compx_aligned = self.style_aligner(blk_num, x[:, 1:self.num_prompts+1, :], style_x[blk_num])
                     x = torch.cat([x[:, :1, :], compx_aligned, x[:, self.num_prompts+1:, :]], dim=1)
 
             x = self.dino_model.norm(x)
 
-            # 去掉 CLS 和 prompts，保留 patch tokens
+            # Remove CLS and prompt tokens, retaining patch tokens.
             x = x[:, 1 + self.num_prompts:, :]
 
             bs, f, c = x.shape
 
-            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # 拆分通道，转换成特征图形式
+            x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # Reshape the token sequence into a spatial feature map.
 
             return x.permute(0, 3, 1, 2)
         else:
             x = self.dino_model.prepare_tokens_with_masks(x, masks)
 
-            # 注意：保持原来代码的分片方式（cls 在 0），原作者用 x[:,2:,:] 作为 patch tokens
+            # Preserve the token slicing, with CLS at index 0 and patches selected by x[:, 2:, :].
             cls_token = x[:, :1, :]        # [B,1,C]
-            patch_tokens = x[:, 2:, :]     # [B, F, C]  （与原代码一致）
+            patch_tokens = x[:, 2:, :]     # [B, F, C], following the original token layout.
 
-            # 由 patch tokens 生成 prompts
+            # Generate prompts from patch tokens.
             prompts = self.prompt_gen(patch_tokens)
 
-            # 将 prompts 插入到 token 序列中（插入在 cls token 之后）
+            # Insert prompts after the CLS token.
             x = torch.cat([cls_token, prompts, patch_tokens], dim=1)
 
-            # 遍历 block，保存前三层输出
+            # Iterate over transformer blocks and collect intermediate outputs.
             for blk_num, blk in enumerate(self.dino_model.blocks):
                 x = blk(x)
-                # if blk_num < 1:  # 前3层（blk_num == 0, 1, 2 → 所以前两层之后就 break？注意：这里只跑了 0 和 1，共两层）
+                # if blk_num < 1:  # Select early blocks before the loop terminates.
                 #     compx_aligned = self.style_aligner(blk_num, x[:, 1:self.num_prompts+1, :])
                 #     x = torch.cat([x[:, :1, :], compx_aligned, x[:, self.num_prompts+1:, :]], dim=1)
 
             x = self.dino_model.norm(x)
 
-            # 去掉 CLS 和 prompts，保留 patch tokens
+            # Remove CLS and prompt tokens, retaining patch tokens.
             prompt_tokens = x[:, 1:self.num_prompts+1, :]
             patch_tokens = x[:, 1 + self.num_prompts:, :]  # [B, F, C]
 
-            # === 新增：计算均值和方差，拼成 B x 2C ===
+            # Concatenate the mean and variance into a B x 2C descriptor.
             mean_prompt = prompt_tokens.mean(dim=-1)      # [B, C]
             var_prompt = prompt_tokens.var(dim=-1)        # [B, C]
             prompt_style = torch.cat([mean_prompt, var_prompt], dim=1)  # [B, 2*C]

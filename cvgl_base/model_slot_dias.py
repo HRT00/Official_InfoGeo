@@ -1,3 +1,4 @@
+import inspect
 import timm
 import numpy as np
 import torch
@@ -102,7 +103,7 @@ class VPRModel(nn.Module):
     """
 
     def __init__(self,
-                 # ---- Backbone 主干网络
+                 # Backbone
                  model_name='dinov2_vitb14_MixVPR',
                  backbone_arch='dinov2_vitb14',
                  pretrained=True,
@@ -111,10 +112,11 @@ class VPRModel(nn.Module):
                  layer1=20,
                  use_cls=False,
                  norm_descs=True,
+                 use_view_token=True,
                  ):
         super().__init__()
-        self.pretrained = pretrained  # 是否预训练
-        self.layers_to_freeze = layers_to_freeze  # 冻结网络层名称
+        self.pretrained = pretrained  # Whether to use pretrained weights.
+        self.layers_to_freeze = layers_to_freeze  # Names of layers to freeze.
         self.layers_to_crop = layers_to_crop  # layers_to_crop=[4],  # 4 crops the last resnet layer, 3 crops the 3rd, ...etc
         self.layer1 = layer1
         self.use_cls = use_cls
@@ -123,9 +125,9 @@ class VPRModel(nn.Module):
         self.model_name = model_name
 
         # ----------------------------------
-        # get the backbone and the aggregator 获得主干网络和聚合器
+        # Initialize the backbone and aggregator.
         self.backbone = helper.get_backbone(backbone_arch=backbone_arch, pretrained=pretrained, layer1=self.layer1, use_cls=self.use_cls,
-                                            norm_descs=self.norm_descs)
+                                            norm_descs=self.norm_descs, use_view_token=use_view_token)
         # self.aggregator = helper.get_aggregator(agg_arch, agg_config)
         
         # self.proj = nn.Sequential(
@@ -232,20 +234,20 @@ class SlotCrossAttention(nn.Module):
 
     def forward(self, att_query, att_context):
         """
-        att_query:   当前视角 slots  [B, K, D] → Q
-        att_context: 另一视角 slots  [B, K, D] → K,V
+        att_query: Current-view slots [B, K, D] used as queries.
+        att_context: Other-view slots [B, K, D] used as keys and values.
         """
-        # 转换为 [K, B, D]
+        # Convert to [K, B, D].
         q = att_query.transpose(0, 1)
         k = att_context.transpose(0, 1)
         v = att_context.transpose(0, 1)
 
-        out, _ = self.ca(q, k, v)     # Q=当前视角，KV=另一个视角
+        out, _ = self.ca(q, k, v)     # Queries from the current view, keys and values from the other view.
 
-        # 回到 [B, K, D]
+        # Convert back to [B, K, D].
         out = out.transpose(0, 1)
 
-        # 残差增强 slot 表达
+        # Update slot representations through a residual connection.
         return att_query + out
 
 class SlotRouter(nn.Module):
@@ -256,7 +258,7 @@ class SlotRouter(nn.Module):
             nn.Linear(dim, dim),
             nn.ReLU(),
             nn.Linear(dim, 1),
-            nn.Sigmoid()             # 限制权重到 [0,1]
+            nn.Sigmoid()             # Constrain weights to [0, 1].
         )
 
     def forward(self, slots):         # [B, K, D]
@@ -270,19 +272,38 @@ class SlotCrossMoE(nn.Module):
         self.router = SlotRouter(dim)
 
     def forward(self, att1, att2):
-        # cross attention (单query版本)
-        f1 = self.ca12(att1, att2)     # att1 query 视角1从视角2抽取信息
-        f2 = self.ca21(att2, att1)     # att2 query 视角2从视角1抽取信息
+        # Cross-attention with a single query view.
+        f1 = self.ca12(att1, att2)     # View 1 queries features from view 2.
+        f2 = self.ca21(att2, att1)     # View 2 queries features from view 1.
 
         # MoE Router
         w1 = self.router(f1)           # [B, K, 1]
         w2 = self.router(f2)
 
-        # 加权（slot gating）
+        # Apply slot gating weights.
         att1_w = att1 * w1
         att2_w = att2 * w2
 
-        return att1_w, att2_w
+        return att1_w, att2_w, (w1, w2)
+
+def _slot_decoder_layer(dim):
+    options = dict(d_model=dim, nhead=4, dim_feedforward=2 * dim, dropout=0.0,
+                   activation="gelu", batch_first=True, norm_first=True)
+    if "bias" in inspect.signature(nn.TransformerDecoderLayer).parameters:
+        return nn.TransformerDecoderLayer(**options, bias=False)
+
+    # PyTorch 2.0 has no decoder-level bias option. Its temporary biased
+    # projections must not consume the RNG used by the actual model.
+    with torch.random.fork_rng(devices=[]):
+        layer = nn.TransformerDecoderLayer(**options)
+    layer.self_attn = nn.MultiheadAttention(dim, 4, bias=False, batch_first=True)
+    layer.multihead_attn = nn.MultiheadAttention(dim, 4, bias=False, batch_first=True)
+    layer.linear1 = nn.Linear(dim, 2 * dim, bias=False)
+    layer.linear2 = nn.Linear(2 * dim, dim, bias=False)
+    for norm in (layer.norm1, layer.norm2, layer.norm3):
+        norm.bias = None
+    return layer
+
 
 class TimmModel_slot(nn.Module):
 
@@ -298,6 +319,7 @@ class TimmModel_slot(nn.Module):
                  iters = 3,
                  layer1=8,
                  alpha=0.8,
+                 use_view_token=True,
                  ):
 
         super(TimmModel_slot, self).__init__()
@@ -310,7 +332,7 @@ class TimmModel_slot(nn.Module):
         self.iters = iters
         
         if "dino" in backbone_arch:
-            self.model = VPRModel(backbone_arch=backbone_arch, layer1=layer1)
+            self.model = VPRModel(backbone_arch=backbone_arch, layer1=layer1, use_view_token=use_view_token, pretrained=pretrained)
         elif "vitt" in backbone_arch:
             # automatically change interpolate pos-encoding to img_size
             self.model = timm.create_model(model_name, pretrained=pretrained, num_classes=0, img_size=img_size)
@@ -337,16 +359,7 @@ class TimmModel_slot(nn.Module):
             nn.LayerNorm(normalized_shape=self.vfm_dim)
         )
         backbone = nn.TransformerDecoder(
-            decoder_layer=nn.TransformerDecoderLayer(
-                d_model=self.vfm_dim,
-                nhead=4,
-                dim_feedforward=self.vfm_dim*2,
-                dropout=0.0,
-                activation="gelu",
-                batch_first=True,
-                norm_first=True,
-                bias=False
-            ),
+            decoder_layer=_slot_decoder_layer(self.vfm_dim),
             num_layers=4
         )
         readout = nn.Identity()
@@ -388,7 +401,7 @@ class TimmModel_slot(nn.Module):
         )
 
         if pretrained_path:
-            # 加载预训练模型的权重，但不包括输出层的权重
+            # Load the pretrained model weights.
             state_dict = torch.load(pretrained_path)
             print("Start from:", pretrained_path)
             self.load_state_dict(state_dict)
@@ -418,7 +431,7 @@ class TimmModel_slot(nn.Module):
             # Cross-view MoE
             attent1 = rearrange(attent1, 'b k h w -> b k (h w)')
             attent2 = rearrange(attent2, 'b k h w -> b k (h w)')
-            attent1, attent2 = self.slot_moe(attent1, attent2)
+            attent1, attent2, w = self.slot_moe(attent1, attent2)
 
             mix1 = self.mix_fusion(feats1, attent1) # [B, P, D]
             mix2 = self.mix_fusion(feats2, attent2) # [B, P, D]
@@ -426,7 +439,7 @@ class TimmModel_slot(nn.Module):
             des1 = self.slot_mixvpr(mix1) # [B, D1]
             des2 = self.slot_mixvpr(mix2) # [B, D1]
 
-            return (feats1, feats2), (des_g, des_s, des1, des2), (attent1, attent2), (recon1, recon2)
+            return (feats1, feats2), (des_g, des_s, des1, des2), (attent1, attent2), (recon1, recon2), w
         else:
             # w/ RD version
             feats1 = self.model(img1)

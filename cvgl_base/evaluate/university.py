@@ -17,6 +17,12 @@ def evaluate(config,
     img_features_query, ids_query = predict(config, model, query_loader)
     img_features_gallery, ids_gallery = predict(config, model, gallery_loader)
 
+    for split, features in (("query", img_features_query), ("gallery", img_features_gallery)):
+        invalid = (~torch.isfinite(features).all(dim=1)).sum().item()
+        if invalid:
+            print(f"Invalid retrieval evaluation: {invalid}/{len(features)} {split} descriptors are nonfinite.")
+            return torch.tensor(float("nan"))
+
     gl = ids_gallery.cpu().numpy()
     ql = ids_query.cpu().numpy()
 

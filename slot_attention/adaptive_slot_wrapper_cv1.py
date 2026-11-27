@@ -49,9 +49,9 @@ def gumbel_softmax(logits, temperature = 1.):
     return hard_one_hot, indices
 
 def get_slotattention_decoder_backbone(object_dim: int, output_dim: int = 4):
-    """原始 Slot Attention 论文解码器：从 1×1 上采样到 32×32（正好 5 层 stride=2）"""
+    """Slot Attention decoder that upsamples 1 x 1 to 32 x 32 with five stride-2 layers."""
     return nn.Sequential(
-        # 输入: [B, C, 1, 1]
+        # Input shape [B, C, 1, 1].
         nn.ConvTranspose2d(object_dim, 64, 5, stride=2, padding=2, output_padding=1),  # → 2×2
         nn.ReLU(inplace=True),
         nn.ConvTranspose2d(64, 64, 5, stride=2, padding=2, output_padding=1),        # → 4×4
@@ -211,31 +211,31 @@ class MixVPR(nn.Module):
         super().__init__()
         # self.in_h = in_h
         # self.in_w = in_w
-        self.in_channels = in_channels  # depth of input feature maps 特征图通道数
+        self.in_channels = in_channels  # Depth of the input feature maps
 
-        self.out_channels = out_channels  # depth wise projection dimension 深度投影尺寸
-        self.out_rows = out_rows  # row wise projection dimesion 列投影尺寸
+        self.out_channels = out_channels  # Channel projection dimension
+        self.out_rows = out_rows  # Row projection dimension
 
-        self.mix_depth = mix_depth  # L the number of stacked FeatureMixers //Mixer的数量
-        self.mlp_ratio = mlp_ratio  # ratio of the mid projection layer in the mixer block //Mixer块的中间投影层的比率
+        self.mix_depth = mix_depth  # Number of stacked FeatureMixers
+        self.mlp_ratio = mlp_ratio  # Hidden dimension ratio in the mixer block
 
         hw = in_h * in_w
         # hw = flatten_dim
-        # 定义一个Sequential容器，用于叠加FeatureMixerLayer
+        # Stack FeatureMixerLayer modules in a Sequential container.
         self.mix = nn.Sequential(*[FeatureMixerLayer(in_dim=hw, mlp_ratio=mlp_ratio) for _ in range(self.mix_depth)
         ])
         self.channel_proj = nn.Linear(in_channels, out_channels)
-        self.row_proj = nn.Linear(hw, out_rows)  # hw输入尺寸，out_rows输出尺寸
+        self.row_proj = nn.Linear(hw, out_rows)  # Project from hw input features to out_rows output features.
 
 
     def forward(self, x):
         x = x.flatten(2)
-        x = self.mix(x)  # Feature-Mixer模块
-        x = x.permute(0, 2, 1)  # 将数据转换成 0块 2行1列
+        x = self.mix(x)  # Feature-Mixer module
+        x = x.permute(0, 2, 1)  # Swap the channel and spatial dimensions.
         x = self.channel_proj(x)
-        x = x.permute(0, 2, 1)  # 将数据转换成 0块 2行1列
+        x = x.permute(0, 2, 1)  # Swap the channel and spatial dimensions.
         x = self.row_proj(x)
-        x = F.normalize(x.flatten(1), p=2, dim=-1)  # 将x展平,并正则化
+        x = F.normalize(x.flatten(1), p=2, dim=-1)  # Flatten x and apply L2 normalization.
         return x
     
 # -------------------------

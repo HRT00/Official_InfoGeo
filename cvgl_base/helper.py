@@ -11,7 +11,8 @@ def get_backbone(style_aligner = None,
                  layers_to_crop=[],
                  layer1=20,
                  use_cls=False,
-                 norm_descs=True):
+                 norm_descs=True,
+                 use_view_token=True):
     """Helper function that returns the backbone given its name
 
     Args:
@@ -52,7 +53,8 @@ def get_backbone(style_aligner = None,
     #     return backbones.DinoV2_(model_name=backbone_arch, layer1=layer1, facet1=facet1, layer2=layer2, layer3=layer3, facet2=facet2, use_cls=use_cls, norm_descs=norm_descs)
 
     elif 'dino' in backbone_arch.lower() and 'prompt' not in backbone_arch.lower() and 'style' not in backbone_arch.lower() and 'tta' not in backbone_arch.lower():
-        return backbones.DinoV2_self(model_name=backbone_arch, layer1=layer1, use_cls=use_cls, norm_descs=norm_descs)
+        return backbones.DinoV2_self(model_name=backbone_arch, layer1=layer1, use_cls=use_cls,
+                                    norm_descs=norm_descs, use_view_token=use_view_token, pretrained=pretrained)
     
     elif 'dino' in backbone_arch.lower() and 'style' in backbone_arch.lower() :
         return backbones.DinoV2_style(model_name=backbone_arch, layer1=layer1, use_cls=use_cls, norm_descs=norm_descs)
@@ -106,5 +108,5 @@ def get_aggregator(agg_arch='ConvAP', agg_config={}):
     elif 'supervlad' in agg_arch.lower():
         return aggregators.SuperVLAD(**agg_config)
 
-    elif 'none' in agg_arch.lower():  # 原始网络结构（全连接层结构)
+    elif 'none' in agg_arch.lower():  # Original network with fully connected layers.
         return nn.Identity()

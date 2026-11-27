@@ -14,7 +14,6 @@ from scipy.linalg import expm, norm
 import collections
 
 import json
-from clip import clip
 
 class PointsToTensor(object):
     def __init__(self, **kwargs):
@@ -187,7 +186,8 @@ class U1652DatasetTrain2D(Dataset):
                  transforms_query=None,
                  transforms_gallery=None,
                  prob_flip=0.5,
-                 shuffle_batch_size=128):
+                 shuffle_batch_size=128, rotate_drone_views=False, drone_view_seed=None, fixed_drone_filename=None,
+                 drone_view_range=None, square_crop_query=False):
         super().__init__()
 
         self.query_dict = get_data(query_folder)
@@ -197,12 +197,35 @@ class U1652DatasetTrain2D(Dataset):
         self.ids = list(set(self.query_dict.keys()).intersection(self.gallery_dict.keys()))
         self.ids.sort()
 
+        self.rotate_drone_views = rotate_drone_views
+        self.square_crop_query = square_crop_query
+        self.epoch_index = -1
         self.pairs = []
+        self.start_view = {}
+
+        selected_files = None
+        if drone_view_range is not None:
+            first, last = drone_view_range
+            selected_files = [f"image-{n:02d}.jpeg" for n in range(first, last + 1)]
 
         for idx in self.ids:
 
-            query_img = "{}/{}".format(self.query_dict[idx]["path"],
-                                       self.query_dict[idx]["files"][0])
+            entry = self.query_dict[idx]
+            if selected_files is not None:
+                missing = set(selected_files).difference(entry["files"])
+                if missing:
+                    raise FileNotFoundError(os.path.join(entry["path"], min(missing)))
+                entry["files"] = selected_files
+            start = 0
+            if fixed_drone_filename is not None:
+                if fixed_drone_filename not in entry["files"]:
+                    raise FileNotFoundError(os.path.join(entry["path"], fixed_drone_filename))
+                start = entry["files"].index(fixed_drone_filename)
+            elif drone_view_seed is not None:
+                entry["files"] = sorted(entry["files"])
+                start = random.Random(f"{drone_view_seed}:{idx}").randrange(len(entry["files"]))
+            self.start_view[idx] = start
+            query_img = os.path.join(entry["path"], entry["files"][start])
 
             gallery_path = self.gallery_dict[idx]["path"]
             gallery_imgs = self.gallery_dict[idx]["files"]
@@ -220,9 +243,18 @@ class U1652DatasetTrain2D(Dataset):
 
         idx, query_img_path, gallery_img_path = self.samples[index]
 
-        # for query there is only one file in folder
+        if self.rotate_drone_views and self.epoch_index > 0:
+            entry = self.query_dict[idx]
+            view = (self.start_view[idx] + self.epoch_index) % len(entry["files"])
+            query_img_path = os.path.join(entry["path"], entry["files"][view])
+
         query_img = cv2.imread(query_img_path)
         query_img = cv2.cvtColor(query_img, cv2.COLOR_BGR2RGB)
+        if self.square_crop_query:
+            height, width = query_img.shape[:2]
+            side = min(height, width)
+            top, left = (height - side) // 2, (width - side) // 2
+            query_img = query_img[top:top + side, left:left + side]
 
         gallery_img = cv2.imread(gallery_img_path)
         gallery_img = cv2.cvtColor(gallery_img, cv2.COLOR_BGR2RGB)
@@ -251,6 +283,7 @@ class U1652DatasetTrain2D(Dataset):
 
         print("\nShuffle Dataset:")
 
+        self.epoch_index += 1
         pair_pool = copy.deepcopy(self.pairs)
 
         # Shuffle pairs order
@@ -564,7 +597,7 @@ class U1652DatasetSCVGLTrain(Dataset):
             pointcloud_img3 = "{}/{}".format(self.pointcloud_dict[idx+'_group2']["path"],
                                             self.pointcloud_dict[idx+'_group2']["files"][0])
 
-            # sat & bev 路径
+            # Satellite and BEV paths
             sat_path = self.sat_dict[idx]["path"]
             sat_imgs = self.sat_dict[idx]["files"]
 
@@ -577,10 +610,10 @@ class U1652DatasetSCVGLTrain(Dataset):
                 if g.endswith(".gif"):
                     continue
 
-                # 98% 使用 BEV，2% 使用 SAT
+                # Use BEV with 98% probability and satellite with 2% probability.
                 import random
                 if random.random() < 0.98 and len(bev_imgs) > 0:
-                    # 随机选一个 bev
+                    # Randomly select a BEV image.
                     g_choice = "{}/{}".format(bev_path, bev_imgs[0])
                 else:
                     g_choice = "{}/{}".format(sat_path, g)
@@ -792,10 +825,10 @@ class U1652DatasetUCVGLTrain(Dataset):
                     self.pairs.append((idx, label, query_img, bev_img, pointcloud_img3, "{}/{}".format(gallery_path, g)))
 
         # For UCVGL
-        galleries = [p[-1] for p in self.pairs]   # 提取最后一列
-        random.shuffle(galleries)                 # 打乱 gallery
+        galleries = [p[-1] for p in self.pairs]   # Extract the last column.
+        random.shuffle(galleries)                 # Shuffle the gallery.
 
-        # 重新组合
+        # Recombine the pairs.
         self.pairs = [(p[0], p[1], p[2], p[3], p[4], g) for p, g in zip(self.pairs, galleries)]
 
         self.transforms_query = transforms_query

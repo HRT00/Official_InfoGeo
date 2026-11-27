@@ -17,7 +17,7 @@ _DINO_FACETS = Literal["query", "key", "value", "token"]
 class DinoV2_(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, model_name: _DINO_V2_MODELS, layer1: int = 20,  layer2=25, layer3=30, facet1: _DINO_FACETS = "value", facet2='value', use_cls=False,
@@ -35,17 +35,17 @@ class DinoV2_(nn.Module):
             - device:   PyTorch device to use
         """
         super().__init__()
-        self.model_name = model_name.lower()  # 将大写转化为小写
+        self.model_name = model_name.lower()  # Convert the model name to lowercase.
 
         self.layer3 = layer3
-        # self.layer2 = layer2  # 要导出特征对应的层
+        # self.layer2 = layer2  # Layer from which to extract features.
         self.layer1 = layer1
 
-        # self.facet1 = facet1  # 定于要取的 qkvt（query key value token）类型
+        # self.facet1 = facet1  # Select query, key, value, or token features.
         # self.facet2 = facet2
 
 
-        self.pretrained = pretrained  # 是否采用与训练参数
+        self.pretrained = pretrained  # Whether to use pretrained weights.
         self.use_cls = use_cls
         self.norm_descs = norm_descs
         self.device = torch.device(device)
@@ -56,7 +56,7 @@ class DinoV2_(nn.Module):
         self._hook_out3 = None
 
         print('loading DINOv2 model...')
-        self.dino_model = torch.hub.load(r'D:\python_code\MixVPR(hgs)\models\backbones\facebookresearch_dinov2_main\dinov2', self.model_name, trust_repo=True, source='local')  # 加载DINOv2预训练模型
+        self.dino_model = torch.hub.load(r'D:\python_code\MixVPR(hgs)\models\backbones\facebookresearch_dinov2_main\dinov2', self.model_name, trust_repo=True, source='local')  # Load the DINOv2 backbone.
         print(self.dino_model)
         # if self.facet1 == "token":
         #     self.fh_handle1 = self.dino_model.blocks[self.layer1].register_forward_hook(self._generate_forward_hook1())
@@ -124,7 +124,7 @@ class DinoV2_(nn.Module):
         # x = self._hook_out1[:, 1:, ...]
 
 
-        x = self.dino_model(x)  # 先过一遍模型，然后从hook提取对应张量
+        x = self.dino_model(x)  # Run the model, then retrieve the tensors captured by the hooks.
 
         if self.use_cls:
             # x1 = self._hook_out1
@@ -162,7 +162,7 @@ class DinoV2_(nn.Module):
             # x = torch.cat([x1, x2, x3], dim=1)
 
         # if self.norm_descs:
-        #     x = F.normalize(x, dim=-1)  # 对张量进行归一化操作
+        #     x = F.normalize(x, dim=-1)  # Normalize the tensor.
 
         # self._hook_out1 = None
         # self._hook_out2 = None

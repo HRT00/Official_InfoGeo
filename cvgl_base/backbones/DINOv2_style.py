@@ -17,7 +17,7 @@ _DINO_FACETS = Literal["query", "key", "value", "token"]
 class DinoV2_style(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, model_name: _DINO_V2_MODELS, layer1: int = 39,  facet1: _DINO_FACETS = "value", use_cls=False,
@@ -35,10 +35,10 @@ class DinoV2_style(nn.Module):
             - device:   PyTorch device to use
         """
         super().__init__()
-        self.model_name = model_name.lower()[:-6]  # 将大写转化为小写
+        self.model_name = model_name.lower()[:-6]  # Convert the model name to lowercase.
         self.layer1 = layer1
 
-        self.pretrained = pretrained  # 是否采用与训练参数
+        self.pretrained = pretrained  # Whether to use pretrained weights.
         self.use_cls = use_cls
         self.norm_descs = norm_descs
         self.device = torch.device(device)
@@ -47,37 +47,37 @@ class DinoV2_style(nn.Module):
 
         print(f'loading DINOv2 model（{self.model_name}）...')
         if 'vitg14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2_wt/dinov2_vitg14_pretrain.pth'))
             if self.layer1 > 39:
                 print('请确认layer的正确性！vitg14最高block层为39层')
                 exit()
         elif 'vitl14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitl14_pretrain.pth'))
             if self.layer1 > 23:
                 print('请确认layer的正确性！vitl14最高block层为23层')
                 exit()
         # elif 'vitl14_reg' in self.model_name:
-        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+        #     self.dino_model = torch.hub.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
         #     self.dino_model.load_state_dict(torch.load(r'/home2/zhanghy/CVCities-main-pointclip/dinov2/dinov2_vitl14_reg4_pretrain.pth'))
         #     if self.layer1 > 23:
-        #         print('请确认layer的正确性！vitl14最高block层为23层')
+        #         print('Check the layer setting. The maximum block index for vitl14 is 23.')
         #         exit()
         elif 'dinov2'in self.model_name and 'vitb14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov2_wt/dinov2_vitb14_pretrain.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'dinov3'in self.model_name and 'vitb16' in self.model_name:
-            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/disk1/zhanghy/CVGL_proj/geolink/geolink/dinov3_wt/dinov3_vitb16_pretrain_lvd1689m.pth'), strict=False)
             if self.layer1 > 11:
                 print('请确认layer的正确性！vitb14最高block层为12层')
                 exit()
         elif 'vits14' in self.model_name:
-            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
+            self.dino_model = torch.hub.load(r'/root/group-trainee/zhy/train/code/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # Load the DINOv2 backbone.
             self.dino_model.load_state_dict(torch.load(r'/home/liuyh/GEO/code/CVCities-main/dinov2/dinov2_vits14_pretrain.pth'))
             if self.layer1 > 11:
                 print('请确认layer的正确性！vits14最高block层为12层')

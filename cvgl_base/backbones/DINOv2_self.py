@@ -1,6 +1,9 @@
 # --<utf-8>--
 
 
+import os
+from pathlib import Path
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -17,11 +20,11 @@ _DINO_FACETS = Literal["query", "key", "value", "token"]
 class DinoV2_self(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, model_name: _DINO_V2_MODELS, layer1: int = 39,  facet1: _DINO_FACETS = "value", use_cls=False,
-                 norm_descs=True, device: str = "cuda:0", pretrained=True) -> None:
+                 norm_descs=True, device: str = "cuda:0", pretrained=True, use_view_token=True) -> None:
         """
             Parameters:
             - dino_model:   The DINO-v2 model to use
@@ -35,44 +38,31 @@ class DinoV2_self(nn.Module):
             - device:   PyTorch device to use
         """
         super().__init__()
-        self.model_name = model_name.lower()  # 将大写转化为小写
+        self.model_name = model_name.lower()  # Convert the model name to lowercase.
         self.layer1 = layer1
 
-        self.pretrained = pretrained  # 是否采用与训练参数
+        self.pretrained = pretrained  # Whether to use pretrained weights.
         self.use_cls = use_cls
         self.norm_descs = norm_descs
         self.device = torch.device(device)
         self.vit_type: str = model_name
 
 
-        print(f'loading DINOv2 model（{self.model_name}）...')
-        if 'vitg14' in self.model_name:
-            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vitg14_pretrain.pth'))
-            if self.layer1 > 39:
-                print('请确认layer的正确性！vitg14最高block层为39层')
-                exit()
-        elif 'vitl14' in self.model_name:
-            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vitl14_pretrain.pth'))
-            if self.layer1 > 23:
-                print('请确认layer的正确性！vitl14最高block层为23层')
-                exit()
-        elif 'vitb14' in self.model_name:
-            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vitb14_pretrain.pth'), strict=False)
-            if self.layer1 > 11:
-                print('请确认layer的正确性！vitb14最高block层为12层')
-                exit()
-        elif 'vits14' in self.model_name:
-            self.dino_model = torch.hub.load(r'Your_path/dinov2-main', self.model_name, trust_repo=True, source='local', pretrained=False)  # 加载DINOv2预训练模型
-            self.dino_model.load_state_dict(torch.load(r'Your_path/dinov2_vits14_pretrain.pth'))
-            if self.layer1 > 11:
-                print('请确认layer的正确性！vits14最高block层为12层')
-                exit()
-        else:
-            print(f'模型名称定义错误，请检查model_name:{self.dino_model}是否正确')
-
+        root = Path(__file__).resolve().parents[2]
+        source = root / "vendor" / "dinov2-main"
+        if not (source / "hubconf.py").is_file():
+            raise FileNotFoundError(f"Extract dinov2-main.zip into {root / 'vendor'}")
+        self.dino_model = torch.hub.load(str(source), self.model_name, trust_repo=True,
+                                         source="local", pretrained=False, use_view_token=use_view_token)
+        if self.layer1 >= len(self.dino_model.blocks):
+            raise ValueError(f"Layer {self.layer1} exceeds the depth of {self.model_name}")
+        if pretrained:
+            default_weights = root / "checkpoints" / f"{self.model_name}_pretrain.pth"
+            weights = Path(os.environ.get("DINOV2_WEIGHTS", default_weights)).expanduser()
+            if not weights.is_file():
+                raise FileNotFoundError(f"Set DINOV2_WEIGHTS to the pretrained backbone file or place it at {default_weights}")
+            state = torch.load(weights, map_location="cpu", weights_only=True)
+            self.dino_model.load_state_dict(state, strict="vitb14" not in self.model_name)
 
         self.dino_model = self.dino_model.to(self.device)
         if pretrained:
@@ -103,14 +93,14 @@ class DinoV2_self(nn.Module):
         #         x3 = x
         # x = torch.cat((x1, x2, x3), dim=2)
 
-        view_x = x['x_norm_viewtoken']
+        view_x = x["x_norm_viewtoken"]
         cls_x = x['x_norm_clstoken']
-        x = x['x_norm_patchtokens']  # 取无cls的输出
+        x = x['x_norm_patchtokens']  # Select patch outputs without the CLS token.
         bs, f, c = x.shape
 
         # x = (x + x.mean(dim=2, keepdim=True)) * 0.5
 
-        x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # 拆分通道，转换成特征图形式
+        x = x.view(bs, int(np.sqrt(f)), int(np.sqrt(f)), c)  # Reshape the token sequence into a spatial feature map.
         return x.permute(0, 3, 1, 2), view_x, cls_x
 
 

@@ -36,10 +36,10 @@ class EfficientNet(nn.Module):
             if layers_to_freeze >= 3:
                 self.model.blocks[4].requires_grad_(False)
             if layers_to_freeze >= 4:
-                self.model.blocks[5].requires_grad_(False)  # model的第6个块不计算梯度
+                self.model.blocks[5].requires_grad_(False)  # Disable gradients for the sixth block.
 
-        self.model.global_pool = None  # 将模型的全局池化层设置成None
-        self.model.fc = None  # 将模型的全连接层设置成None
+        self.model.global_pool = None  # Remove the global pooling layer.
+        self.model.fc = None  # Remove the fully connected layer.
         
         out_channels = 1280 # for b0 and b1（1280）
         if 'b2' in model_name:

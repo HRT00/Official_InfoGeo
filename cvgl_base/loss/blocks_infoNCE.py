@@ -12,7 +12,7 @@ def get_heartmap_pool(part_features, blocks=3, add_global=False, otherbranch=Fal
     x_sort = [part_features[i, arg[i], :] for i in range(part_features.size(0))]
     x_sort = torch.stack(x_sort, dim=0)
 
-    # -- 按照地物自动聚类的类别数来将16*16的区域进行分类
+    # Classify the 16 x 16 regions using automatically clustered land-cover categories.
     split_each = size / blocks
     split_list = [int(split_each) for i in range(blocks - 1)]
     split_list.append(size - sum(split_list))
@@ -64,7 +64,7 @@ class blocks_InfoNCE(nn.Module):
 
             loss = (self.loss_function(logits_per_image1, labels) + self.loss_function(logits_per_image2, labels)) / 2
 
-        # 2. weight and sum (效果更差)
+        # 2. Weight and sum (lower performance in experiments).
         # image_features_blocks_1 = (3 * weights[0] * heat_result_1[:, :, 0] +
         #                            2 * weights[1] * heat_result_1[:, :, 1] + 1 * weights[2] * heat_result_1[:, :, 2])
         # image_features_blocks_2 = (3 * weights[0] * heat_result_2[:, :, 0] +

@@ -16,7 +16,7 @@ _DINO_FACETS = Literal["query", "key", "value", "token"]
 class DinoV2(nn.Module):
     """
         Extract features from an intermediate layer in Dino-v2
-        从 Dino-v2 中的中间层提取特征
+        Extract features from intermediate DINOv2 layers.
     """
 
     def __init__(self, model_name: _DINO_V2_MODELS, layer: int = 31, facet: _DINO_FACETS = "value", use_cls=False,
@@ -40,10 +40,10 @@ class DinoV2(nn.Module):
 
         self.vit_type: str = model_name
         print('loading DINOv2 model...')
-        self.dino_model: nn.Module = torch.hub.load(r'D:\Python_code\MixVPR(hgs)\models\backbones\facebookresearch\dinov2', model_name, trust_repo=True, source='local') # 加载DINOv2预训练模型
+        self.dino_model: nn.Module = torch.hub.load(r'D:\Python_code\MixVPR(hgs)\models\backbones\facebookresearch\dinov2', model_name, trust_repo=True, source='local') # Load the DINOv2 backbone.
         # print(self.dino_model)
-        self.device = torch.device(device)  # 数据计算所用设备‘cpu’ ‘cuda*’
-        self.dino_model = self.dino_model.eval().to(self.device)  # 评估模式
+        self.device = torch.device(device)  # Device used for computation, such as cpu or cuda.
+        self.dino_model = self.dino_model.eval().to(self.device)  # Evaluation mode
         self.layer: int = layer
         self.facet = facet
         if self.facet == "token":
@@ -61,7 +61,7 @@ class DinoV2(nn.Module):
         return _forward_hook
 
 
-    def __call__(self, img: torch.Tensor) -> torch.Tensor:  # __cal__()可以作为直接调用该类的函数
+    def __call__(self, img: torch.Tensor) -> torch.Tensor:  # Allow the instance to be called directly.
         """
             Parameters:
             - img:   The input image
@@ -100,14 +100,14 @@ if __name__ == '__main__':
     #     if i <= 31:
     #         model.dino_model.blocks[i].requires_grad_(False)
     #     else:
-    #         model.dino_model.blocks[i] = nn.Sequential()  # 设置为空的nn.Sequential()对象
+    #         model.dino_model.blocks[i] = nn.Sequential()  # Replace with an empty Sequential module.
     #
-    #     model.dino_model.blocks[31].norm1.requires_grad_(True)  # 将requires_grad属性设置为True，即计算该部分的梯度
-    #     model.dino_model.patch_embed.requires_grad_(False)  # requires_grad属性设置为False，即不计算该部分的梯度
-    #     model.dino_model.norm = nn.Sequential()  # 设置为空的nn.Sequential()对象
-    #     model.dino_model.head = nn.Sequential()  # 设置为空的nn.Sequential()对象
-    #     model.norm = nn.Sequential()  # 设置为空的nn.Sequential()对象
-    #     model.head = nn.Sequential()  # 设置为空的nn.Sequential()对象
+    #     model.dino_model.blocks[31].norm1.requires_grad_(True)  # Enable gradients.
+    #     model.dino_model.patch_embed.requires_grad_(False)  # Disable gradients.
+    #     model.dino_model.norm = nn.Sequential()  # Replace with an empty Sequential module.
+    #     model.dino_model.head = nn.Sequential()  # Replace with an empty Sequential module.
+    #     model.norm = nn.Sequential()  # Replace with an empty Sequential module.
+    #     model.head = nn.Sequential()  # Replace with an empty Sequential module.
 
     # print(model)
     r = model(x)

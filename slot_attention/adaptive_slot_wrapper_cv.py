@@ -45,9 +45,9 @@ def gumbel_softmax(logits, temperature = 1.):
     return hard_one_hot, indices
 
 def get_slotattention_decoder_backbone(object_dim: int, output_dim: int = 4):
-    """原始 Slot Attention 论文解码器：从 1×1 上采样到 32×32（正好 5 层 stride=2）"""
+    """Slot Attention decoder that upsamples 1 x 1 to 32 x 32 with five stride-2 layers."""
     return nn.Sequential(
-        # 输入: [B, C, 1, 1]
+        # Input shape [B, C, 1, 1].
         nn.ConvTranspose2d(object_dim, 64, 5, stride=2, padding=2, output_padding=1),  # → 2×2
         nn.ReLU(inplace=True),
         nn.ConvTranspose2d(64, 64, 5, stride=2, padding=2, output_padding=1),        # → 4×4
@@ -126,62 +126,62 @@ class PatchDecoderCNN(nn.Module):
 
 class SlotSuperVLAD(nn.Module):
     """
-    输入：经过跨视角匹配筛选后的 slots → 输出固定 3072 维全局描述子
+    Map slots selected by cross-view matching to a 3072-dimensional global descriptor.
     """
     def __init__(
         self,
         slot_dim: int = 256,
-        num_clusters: int = 4,           # 64 是经典值 → 64×48=3072
+        num_clusters: int = 4,           # A common setting uses 64 clusters and 48 dimensions, giving 3072 features.
         desc_dim: int = 3072,
-        ghost_norm: bool = True,          # SuperVLAD 的关键 trick
+        ghost_norm: bool = True,          # SuperVLAD normalization option.
     ):
         super().__init__()
         self.num_clusters = num_clusters
         self.ghost_norm = ghost_norm
 
-        # 可学习聚类中心（就是 NetVLAD 的 codebook）
+        # Learnable cluster centers form the NetVLAD codebook.
         self.centroids = nn.Parameter(torch.randn(num_clusters, slot_dim))
 
-        # 先把 slot 投射到残差空间（SuperVLAD 推荐）
+        # Project slots into the residual space before aggregation.
         self.project = nn.Linear(slot_dim, slot_dim, bias=False)
-        nn.init.orthogonal_(self.project.weight)  # 关键初始化
+        nn.init.orthogonal_(self.project.weight)  # Orthogonal initialization
 
-        # 最终输出维度调整（如果 slot_dim=256 → 64×256=16384 太大，可以先降到 48）
+        # Adjust the output dimension, optionally reducing slot_dim from 256 to 48.
         final_cluster_dim = desc_dim // num_clusters
         self.final_proj = nn.Linear(slot_dim, final_cluster_dim) if final_cluster_dim != slot_dim else nn.Identity()
 
     def forward(self, slots: torch.Tensor, keep_mask: torch.Tensor):
         """
         slots:      [B, K, D]
-        keep_mask:  [B, K]  float, 1=跨视角匹配成功
-        返回:       [B, 3072]  L2-normed
+        keep_mask: [B, K] float mask, where 1 indicates a cross-view match.
+        Returns an L2-normalized descriptor of shape [B, 3072].
         """
         B, _, D = slots.shape
 
-        # 1. 只保留匹配成功的 slots
+        # 1. Retain slots with successful matches.
         valid_slots = slots[keep_mask > 0.5]          # [N_valid, D]
-        if valid_slots.shape[0] == 0:                 # 极端情况：一个都没匹配上
+        if valid_slots.shape[0] == 0:                 # Handle the case with no matched slots.
             return torch.zeros(B, self.num_clusters * (D if hasattr(self.final_proj, 'out_features') else D),
                               device=slots.device)
 
-        # 2. 投影到残差空间
+        # 2. Project into the residual space.
         residuals = self.final_proj(self.project(valid_slots))   # [N_valid, final_dim]
 
-        # 3. 计算 soft assignment（比 hard 更平滑）
+        # 3. Compute soft cluster assignments.
         dist = torch.cdist(residuals, self.centroids)            # [N_valid, C]
         soft_assign = F.softmax(-dist * 10.0, dim=-1)            # τ=0.1
 
-        # 4. VLAD 聚合（每个 cluster 一个残差向量）
+        # 4. Aggregate one residual vector per VLAD cluster.
         vlad = torch.zeros(B, self.num_clusters, residuals.shape[-1], device=slots.device)
         batch_idx = (keep_mask > 0.5).nonzero(as_tuple=True)[0]
 
-        # 累加残差
+        # Accumulate residuals.
         for c in range(self.num_clusters):
             res_c = residuals - self.centroids[c]
             weighted = soft_assign[:, c:c+1] * res_c              # [N_valid, dim]
-            vlad[batch_idx] += weighted.unsqueeze(0).sum(dim=1)  # 按 batch 累加
+            vlad[batch_idx] += weighted.unsqueeze(0).sum(dim=1)  # Accumulate within each batch item.
 
-        # 5. SuperVLAD归一化
+        # 5. Apply SuperVLAD normalization.
         vlad = F.normalize(vlad, p=2, dim=-1)                    # intra-norm
         vlad = vlad.view(B, -1)
         vlad = F.normalize(vlad, p=2, dim=-1)                      # L2 norm
@@ -202,7 +202,7 @@ class CVGLSlotVLAD(nn.Module):
         self.slot_attn_g = slot_attention_g
         self.slot_attn_s = slot_attention_s
 
-        # 双视角对齐模块（训练用）
+        # Cross-view alignment module used during training.
         self.cross_matcher = nn.Sequential(
             nn.Linear(slot_dim * 2, slot_dim),
             nn.ReLU(),
@@ -221,10 +221,10 @@ class CVGLSlotVLAD(nn.Module):
 
     def forward(self, feats_g=None, feats_s=None):
         """
-        训练： forward(g_feats, s_feats)
-        推理： forward(g_feats)
+        Training uses forward(g_feats, s_feats).
+        Inference uses forward(g_feats).
         """
-        # ===== 推理模式：只输入一个视角 =====
+        # Inference with one input view.
         if not self.training:
             if feats_g is not None:
                 slots = self.slot_attn_g(feats_g.flatten(start_dim=-2).transpose(1, 2))       # [B, K, D]
@@ -235,19 +235,19 @@ class CVGLSlotVLAD(nn.Module):
             desc = self.vlad(slots, keep_mask)    # SuperVLAD
             return desc
         else:
-            # ===== 训练模式：双视角一致性监督 =====
+            # Training with cross-view consistency supervision.
             slots_g = self.slot_attn_g(feats_g.flatten(start_dim=-2).transpose(1, 2))
             slots_s = self.slot_attn_s(feats_s.flatten(start_dim=-2).transpose(1, 2))
 
             B, K, _ = slots_g.shape
 
-            # 构造 pair feature
+            # Construct pair features.
             sg = slots_g.unsqueeze(2).expand(-1, -1, K, -1)
             ss = slots_s.unsqueeze(1).expand(-1, K, -1, -1)
             pair_feats = torch.cat([sg, ss], dim=-1)
             similarity_logits = self.cross_matcher(pair_feats).squeeze(-1)  # [B, K, K]
 
-            # 双向 gumbel matching（训练）
+            # Bidirectional Gumbel matching during training.
             dummy = torch.full((B, K, 1), -10.0, device=slots_g.device)
             logits_g2s = torch.cat([similarity_logits, dummy], dim=2)
             logits_s2g = torch.cat([similarity_logits.transpose(1, 2), dummy], dim=2)
@@ -258,11 +258,11 @@ class CVGLSlotVLAD(nn.Module):
             keep_mask_g = 1.0 - match_g2s[..., -1]   # [B,K]
             keep_mask_s = 1.0 - match_s2g[..., -1]
 
-            # VLAD 聚合
+            # VLAD aggregation
             desc_g = self.vlad(slots_g, keep_mask_g)
             desc_s = self.vlad(slots_s, keep_mask_s)
 
-            # 重建
+            # Reconstruction
             recon_g = self.slot_decoder(slots_g, keep_mask_g)
             recon_s = self.slot_decoder(slots_s, keep_mask_s)
 
