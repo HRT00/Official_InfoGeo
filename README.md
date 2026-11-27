@@ -1,5 +1,4 @@
-<h1 align="center">InfoGeo</h1>
-<h3 align="center">Information-Theoretic Object-Centric Learning<br>for Cross-View Generalizable UAV Geo-Localization</h3>
+<h3 align="center">InfoGeo: Information-Theoretic Object-Centric Learning<br>for Cross-View Generalizable UAV Geo-Localization</h3>
 
 <p align="center">
   <a href="https://github.com/HRT00/Official_InfoGeo"><img src="https://img.shields.io/badge/Code-GitHub-181717?logo=github&logoColor=white" alt="GitHub repository"></a>
