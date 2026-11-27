@@ -185,8 +185,6 @@ We include the training logs and separate checkpoint evaluation records from **`
 | DenseUAV | 1 | 89.8500 | 91.6127 | [train.log](results/dense_to_sues150/train.log) | [eval.log](results/dense_to_sues150/eval.log) |
 | University-1652 | 28 | 92.7250 | 93.9302 | [train.log](results/university_to_sues150/train.log) | [eval.log](results/university_to_sues150/eval.log) |
 
-The University training log covers the 40-epoch run, and the table reports the selected epoch-28 checkpoint. The evaluation records identify the checkpoint filename, view-token setting, protocol, and PyTorch version. DenseUAV evaluation was recorded with PyTorch `2.6.0+cu124`, and University evaluation with `2.0.1+cu118`.
-
 ## 🙏 Acknowledgements
 
 We thank the open-source community and the researchers working on Object-Centric Learning and Cross-View Geo-Localization. Our implementation builds on [DIAS](https://github.com/Genera1Z/DIAS) and [CVCities](https://github.com/GaoShuang98/CVCities).
